@@ -10,9 +10,7 @@
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
+            fontFamily: { sans: ['Inter', 'sans-serif'] },
             colors: {
               board: {
                 light: '#e8cfa6',
@@ -27,38 +25,22 @@
               'spin-slow': 'spin 8s linear infinite',
             },
             keyframes: {
-              fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              bounceIn: {
-                '0%': { opacity: '0', transform: 'scale(0.8)' },
-                '100%': { opacity: '1', transform: 'scale(1)' },
-              }
+              fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+              bounceIn: { '0%': { opacity: '0', transform: 'scale(0.8)' }, '100%': { opacity: '1', transform: 'scale(1)' } }
             }
           }
         }
       }
     </script>
     <style>
-      body {
-        background-color: #1a1a1a;
-        color: #ffffff;
-      }
-      ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: #2d2d2d; }
-      ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: #777; }
-
+      body { background-color: #1a1a1a; color: #ffffff; margin: 0; overflow-x: hidden; }
+      #root { min-height: 100vh; }
       @keyframes fall {
         0% { top: -10%; transform: translateX(0) rotate(0deg); opacity: 0; }
         10% { opacity: 1; }
         100% { top: 110%; transform: translateX(20px) rotate(360deg); opacity: 0; }
       }
-      @keyframes sway {
-        0%, 100% { transform: translateX(0px); }
-        50% { transform: translateX(25px); }
-      }
+      @keyframes sway { 0%, 100% { transform: translateX(0px); } 50% { transform: translateX(25px); } }
       .falling-petal {
         position: fixed;
         pointer-events: none;
@@ -71,11 +53,8 @@
   <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "chess.js": "https://esm.sh/chess.js@1.0.0-beta.8"
+    "react": "https://esm.sh/react@^19.2.3"
   }
 }
 </script>

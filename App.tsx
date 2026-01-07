@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState } from 'https://esm.sh/react@19.0.0';
 import Chessboard from './components/Chessboard';
 import CaroBoard from './components/CaroBoard';
 import TetEffect from './components/TetEffect';
 import { GameMode, BotDifficulty, GameType } from './types';
-import { Bot, Users, Crown, ArrowLeft, Swords, Brain, Zap, Grid3X3, Castle, Flower2 } from 'lucide-react';
+import { 
+  Bot, Users, Crown, ArrowLeft, Swords, Brain, Zap, Grid3X3, Castle, Flower2 
+} from 'https://esm.sh/lucide-react@0.474.0?deps=react@19.0.0';
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameType | null>(null);
@@ -15,7 +17,7 @@ export default function App() {
   // Handlers
   const handleSelectGame = (game: GameType) => {
       setActiveGame(game);
-      setGameMode('menu'); // Reset mode when switching games
+      setGameMode('menu'); 
   };
 
   const handleModeSelect = (mode: 'pvp' | 'bot_select') => {
@@ -43,7 +45,6 @@ export default function App() {
       setShowDifficultySelect(false);
   };
 
-  // Toggle Tet Effect Button Component
   const ToggleEffectButton = () => (
       <button 
         onClick={() => setShowTetEffect(!showTetEffect)}
@@ -73,108 +74,68 @@ export default function App() {
       </footer>
   );
 
-  // 1. GAME SELECTION SCREEN
   if (!activeGame) {
       return (
         <div className="min-h-screen bg-[#1a1a1a] flex flex-col items-center justify-center font-sans relative overflow-hidden">
              {showTetEffect && <TetEffect />}
              <ToggleEffectButton />
-
-             {/* Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-amber-900 blur-[150px]"></div>
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900 blur-[150px]"></div>
             </div>
-
             <div className="z-10 text-center animate-fade-in px-4">
-                
-                {/* Happy New Year Banner */}
                 {showTetEffect && (
                     <div className="mb-6 animate-bounce-in select-none">
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-[#e63946] drop-shadow-[0_2px_0_rgba(255,215,0,1)] font-serif tracking-widest uppercase mb-1">
-                            Happy New Year
-                        </h2>
-                        <div className="text-4xl md:text-6xl font-black text-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-                            2026
-                        </div>
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-[#e63946] drop-shadow-[0_2px_0_rgba(255,215,0,1)] font-serif tracking-widest uppercase mb-1">Happy New Year</h2>
+                        <div className="text-4xl md:text-6xl font-black text-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">2026</div>
                     </div>
                 )}
-
                 <div className="mb-8 p-6 bg-gray-800/80 backdrop-blur-lg rounded-full shadow-2xl border border-gray-700 inline-block relative">
                     <Crown size={64} className="text-amber-500" />
                     {showTetEffect && <div className="absolute -top-2 -right-2 text-2xl animate-bounce">🌸</div>}
                 </div>
-                <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 mb-2 drop-shadow-sm">
-                    VinaGames
-                </h1>
+                <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 mb-2 drop-shadow-sm">VinaGames</h1>
                 <p className="text-gray-400 mb-12 text-lg">Chọn trò chơi yêu thích của bạn</p>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
-                    <button 
-                        onClick={() => handleSelectGame('chess')}
-                        className="group relative flex flex-col items-center justify-center p-10 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-amber-500 rounded-3xl transition-all duration-300 shadow-xl hover:shadow-amber-900/30 hover:-translate-y-2"
-                    >
+                    <button onClick={() => handleSelectGame('chess')} className="group relative flex flex-col items-center justify-center p-10 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-amber-500 rounded-3xl transition-all duration-300 shadow-xl hover:shadow-amber-900/30 hover:-translate-y-2">
                         <Castle size={64} className="text-amber-400 mb-6 group-hover:scale-110 transition-transform" />
                         <span className="text-3xl font-bold text-white">Cờ Vua</span>
                         <span className="text-gray-400 mt-2">Chiến thuật đỉnh cao</span>
                     </button>
-
-                    <button 
-                        onClick={() => handleSelectGame('caro')}
-                        className="group relative flex flex-col items-center justify-center p-10 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-blue-500 rounded-3xl transition-all duration-300 shadow-xl hover:shadow-blue-900/30 hover:-translate-y-2"
-                    >
+                    <button onClick={() => handleSelectGame('caro')} className="group relative flex flex-col items-center justify-center p-10 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-blue-500 rounded-3xl transition-all duration-300 shadow-xl hover:shadow-blue-900/30 hover:-translate-y-2">
                         <Grid3X3 size={64} className="text-blue-400 mb-6 group-hover:scale-110 transition-transform" />
                         <span className="text-3xl font-bold text-white">Cờ Ca-rô</span>
                         <span className="text-gray-400 mt-2">Nối 5 để thắng (Gomoku)</span>
                     </button>
                 </div>
             </div>
-            
             <FooterCredit />
         </div>
       );
   }
 
-  // 2. DIFFICULTY SELECTION (Shared)
   if (showDifficultySelect) {
     return (
       <div className="min-h-screen bg-[#1a1a1a] flex flex-col items-center justify-center font-sans relative">
            {showTetEffect && <TetEffect />}
            <ToggleEffectButton />
-           
            <div className="z-10 w-full max-w-lg px-4 animate-fade-in text-center">
-              <button 
-                  onClick={() => setShowDifficultySelect(false)}
-                  className="absolute top-8 left-8 p-3 bg-gray-800 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white transition"
-              >
+              <button onClick={() => setShowDifficultySelect(false)} className="absolute top-8 left-8 p-3 bg-gray-800 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white transition">
                   <ArrowLeft size={24} />
               </button>
-
               <h2 className="text-3xl font-bold text-white mb-8">Chọn Độ Khó ({activeGame === 'chess' ? 'Cờ Vua' : 'Ca-rô'})</h2>
-              
               <div className="grid grid-cols-1 gap-4">
                   <button onClick={() => handleStartBotGame('easy')} className="group flex items-center p-6 bg-gray-800 hover:bg-green-900/30 border-2 border-transparent hover:border-green-500 rounded-xl transition-all shadow-lg">
                       <div className="p-4 bg-gray-900 rounded-full mr-6 text-green-400"><Zap size={32} /></div>
-                      <div className="text-left">
-                          <h3 className="text-xl font-bold text-white group-hover:text-green-400">Dễ</h3>
-                          <p className="text-gray-400 text-sm">Bot chơi nhẹ nhàng, dễ thắng.</p>
-                      </div>
+                      <div className="text-left"><h3 className="text-xl font-bold text-white group-hover:text-green-400">Dễ</h3><p className="text-gray-400 text-sm">Bot chơi nhẹ nhàng, dễ thắng.</p></div>
                   </button>
-
                   <button onClick={() => handleStartBotGame('medium')} className="group flex items-center p-6 bg-gray-800 hover:bg-yellow-900/30 border-2 border-transparent hover:border-yellow-500 rounded-xl transition-all shadow-lg">
                       <div className="p-4 bg-gray-900 rounded-full mr-6 text-yellow-400"><Brain size={32} /></div>
-                      <div className="text-left">
-                          <h3 className="text-xl font-bold text-white group-hover:text-yellow-400">Trung Bình</h3>
-                          <p className="text-gray-400 text-sm">Bot biết tấn công và phòng thủ cơ bản.</p>
-                      </div>
+                      <div className="text-left"><h3 className="text-xl font-bold text-white group-hover:text-yellow-400">Trung Bình</h3><p className="text-gray-400 text-sm">Bot biết tấn công và phòng thủ cơ bản.</p></div>
                   </button>
-
                   <button onClick={() => handleStartBotGame('hard')} className="group flex items-center p-6 bg-gray-800 hover:bg-red-900/30 border-2 border-transparent hover:border-red-500 rounded-xl transition-all shadow-lg">
                       <div className="p-4 bg-gray-900 rounded-full mr-6 text-red-500"><Swords size={32} /></div>
-                      <div className="text-left">
-                          <h3 className="text-xl font-bold text-white group-hover:text-red-500">Khó</h3>
-                          <p className="text-gray-400 text-sm">Thử thách thực sự cho cao thủ.</p>
-                      </div>
+                      <div className="text-left"><h3 className="text-xl font-bold text-white group-hover:text-red-500">Khó</h3><p className="text-gray-400 text-sm">Thử thách thực sự cho cao thủ.</p></div>
                   </button>
               </div>
            </div>
@@ -183,39 +144,27 @@ export default function App() {
     );
   }
 
-  // 3. MAIN GAME SCREEN (Board or Mode Menu)
   return (
     <div className="min-h-screen bg-[#1a1a1a] flex flex-col items-center justify-center font-sans relative">
        {showTetEffect && <TetEffect />}
        <ToggleEffectButton />
-       
-       {/* Global Back Button (only active if in Menu mode of a specific game) */}
        {gameMode === 'menu' && (
            <button onClick={goHome} className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-white transition z-20">
                <ArrowLeft size={20} /> <span className="font-bold">Đổi Game</span>
            </button>
        )}
-
        <div className="z-10 w-full max-w-4xl px-4">
         {gameMode === 'menu' ? (
              <div className="flex flex-col items-center justify-center animate-fade-in text-center">
                  <h1 className="text-4xl font-bold text-white mb-2">{activeGame === 'chess' ? 'Cờ Vua' : 'Cờ Ca-rô'}</h1>
                  <p className="text-gray-400 mb-12">Chọn chế độ chơi</p>
-
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg">
-                    <button 
-                        onClick={() => handleModeSelect('bot_select')}
-                        className="group relative flex flex-col items-center justify-center p-8 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-amber-500/50 rounded-2xl transition-all duration-300 shadow-xl"
-                    >
+                    <button onClick={() => handleModeSelect('bot_select')} className="group relative flex flex-col items-center justify-center p-8 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-amber-500/50 rounded-2xl transition-all duration-300 shadow-xl">
                         <Bot size={48} className="text-amber-400 mb-4" />
                         <span className="text-2xl font-bold text-white">Đấu với Bot</span>
                         <span className="text-sm text-gray-400 mt-2">Luyện tập offline</span>
                     </button>
-
-                    <button 
-                        onClick={() => handleModeSelect('pvp')}
-                        className="group relative flex flex-col items-center justify-center p-8 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-blue-500/50 rounded-2xl transition-all duration-300 shadow-xl"
-                    >
+                    <button onClick={() => handleModeSelect('pvp')} className="group relative flex flex-col items-center justify-center p-8 bg-gray-800 hover:bg-gray-700 border-2 border-transparent hover:border-blue-500/50 rounded-2xl transition-all duration-300 shadow-xl">
                         <Users size={48} className="text-blue-400 mb-4" />
                         <span className="text-2xl font-bold text-white">Hai Người</span>
                         <span className="text-sm text-gray-400 mt-2">Chơi trên cùng máy</span>
