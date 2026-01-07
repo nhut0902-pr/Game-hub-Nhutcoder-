@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VinaGames - Chess & Caro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <script type="importmap">
 {
   "imports": {
@@ -20,39 +20,32 @@
 }
 </script>
     <script>
-      window.addEventListener('error', function(e) {
-        if (e.message.includes('importmap')) {
-          console.error('Importmap error detected');
-        }
-      });
-      
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: { sans: ['Inter', 'sans-serif'] },
+            fontFamily: { 
+              sans: ['Inter', 'sans-serif'],
+              mono: ['Fira Code', 'monospace']
+            },
             colors: {
               board: {
                 light: '#e8cfa6',
                 dark: '#8f5e36',
                 highlight: 'rgba(255, 255, 0, 0.5)',
                 move: 'rgba(0, 0, 0, 0.15)',
+              },
+              system: {
+                neon: '#00ff41',
+                alert: '#ff3131',
+                warning: '#ffaa00'
               }
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.5s ease-out',
-              'bounce-in': 'bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-              'spin-slow': 'spin 8s linear infinite',
-            },
-            keyframes: {
-              fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-              bounceIn: { '0%': { opacity: '0', transform: 'scale(0.8)' }, '100%': { opacity: '1', transform: 'scale(1)' } }
             }
           }
         }
       }
     </script>
     <style>
-      body { background-color: #1a1a1a; color: #ffffff; margin: 0; overflow-x: hidden; }
+      body { background-color: #0f0f0f; color: #ffffff; margin: 0; overflow-x: hidden; }
       #root { min-height: 100vh; display: flex; flex-direction: column; }
       @keyframes fall {
         0% { top: -10%; transform: translateX(0) rotate(0deg); opacity: 0; }
@@ -68,16 +61,20 @@
         animation-timing-function: linear, ease-in-out;
         animation-iteration-count: infinite, infinite;
       }
-      /* Loading state fallback */
-      #root:empty::before {
-        content: "Đang tải ứng dụng...";
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        width: 100vw;
-        font-family: sans-serif;
-        color: #888;
+      .led-pulse {
+        box-shadow: 0 0 8px currentColor;
+        animation: pulse 1.5s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
       }
     </style>
   </head>
