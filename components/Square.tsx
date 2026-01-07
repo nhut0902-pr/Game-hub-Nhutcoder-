@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'https://esm.sh/react@19.0.0';
 import Piece from './Piece';
 import { SquareProps } from '../types';
 
@@ -31,7 +31,7 @@ const Square: React.FC<SquareProps> = ({
     <div
       onClick={onClick}
       className={`${bgClass} relative flex items-center justify-center cursor-pointer select-none transition-colors duration-100`}
-      style={{ width: '100%', paddingBottom: '100%' }} // Aspect ratio hack if not using grid-rows properly, but grid handles it too
+      style={{ width: '100%', paddingBottom: '100%' }}
     >
       <div className="absolute inset-0 flex items-center justify-center">
         {/* Rank/File labels for corners */}
