@@ -3,6 +3,7 @@ export type CaroPlayer = 'X' | 'O'; // For Caro
 
 export type GameMode = 'pvp' | 'bot' | 'menu';
 export type GameType = 'chess' | 'caro';
+export type GameSubMode = 'classic' | 'time' | 'challenge' | 'online';
 
 export type BotDifficulty = 'easy' | 'medium' | 'hard';
 

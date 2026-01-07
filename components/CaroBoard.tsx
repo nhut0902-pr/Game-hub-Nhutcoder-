@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GameMode, BotDifficulty, CaroState } from '../types';
+import { GameMode, BotDifficulty, CaroState, GameSubMode } from '../types';
 import { initCaroGame, makeCaroMove, undoCaroMove, loadCaroGame, BOARD_SIZE } from '../services/caroService';
 import { getBestCaroMove } from '../services/caroBotService';
-import { RefreshCw, SkipBack, Home, Download, Upload, ZoomIn, ZoomOut } from 'lucide-react';
+import { RefreshCw, SkipBack, Home, Download, Upload, ZoomIn, ZoomOut, Clock } from 'lucide-react';
 
 interface CaroBoardProps {
     mode: GameMode;
     difficulty?: BotDifficulty;
     onGoBack: () => void;
     onEarnCoins: (amount: number) => void;
+    subMode: GameSubMode;
 }
 
-const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEarnCoins }) => {
+const INITIAL_TIME = 300; // 5 mins
+
+const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEarnCoins, subMode }) => {
     const [state, setState] = useState<CaroState>(initCaroGame());
     const [isThinking, setIsThinking] = useState(false);
     const [zoom, setZoom] = useState(1);
@@ -19,21 +22,49 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
     const fileInputRef = useRef<HTMLInputElement>(null);
     const boardRef = useRef<HTMLDivElement>(null);
 
+    // Timer State
+    const [xTime, setXTime] = useState(INITIAL_TIME);
+    const [oTime, setOTime] = useState(INITIAL_TIME);
+    const [timeOver, setTimeOver] = useState<'X' | 'O' | null>(null);
+
     useEffect(() => { 
         setState(initCaroGame()); 
         setEarnedCoins(0);
-    }, [mode, difficulty]);
+        setXTime(INITIAL_TIME);
+        setOTime(INITIAL_TIME);
+        setTimeOver(null);
+    }, [mode, difficulty, subMode]);
 
     useEffect(() => {
-        if (state.winner && earnedCoins === 0) {
+        if (subMode === 'time' && !state.winner && !timeOver && !isThinking) {
+            const timer = setInterval(() => {
+                if (state.turn === 'X') {
+                    setXTime(t => {
+                        if (t <= 1) { setTimeOver('X'); clearInterval(timer); return 0; }
+                        return t - 1;
+                    });
+                } else {
+                    setOTime(t => {
+                        if (t <= 1) { setTimeOver('O'); clearInterval(timer); return 0; }
+                        return t - 1;
+                    });
+                }
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [state.turn, state.winner, timeOver, isThinking, subMode]);
+
+    useEffect(() => {
+        const hasWinner = state.winner || timeOver;
+        if (hasWinner && earnedCoins === 0) {
              let reward = 0;
-             if (state.winner === 'draw') {
+             const finalWinner = timeOver ? (timeOver === 'X' ? 'O' : 'X') : state.winner;
+             
+             if (finalWinner === 'draw') {
                  reward = 20;
              } else {
-                 // Winner is state.winner ('X' or 'O')
                  if (mode === 'bot') {
-                     // Bot is usually 'O', Player 'X'
-                     if (state.winner === 'X') reward = 80;
+                     if (finalWinner === 'X') reward = subMode === 'challenge' ? 160 : 80;
                      else reward = 10;
                  } else {
                      reward = 40;
@@ -44,7 +75,7 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
                  onEarnCoins(reward);
              }
         }
-    }, [state.winner, earnedCoins, mode, onEarnCoins]);
+    }, [state.winner, timeOver, earnedCoins, mode, onEarnCoins, subMode]);
 
     useEffect(() => {
         if (boardRef.current) {
@@ -57,28 +88,29 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
     useEffect(() => {
         let isMounted = true;
         const runBot = async () => {
-            if (mode === 'bot' && state.turn === 'O' && !state.winner) {
+            if (mode === 'bot' && state.turn === 'O' && !state.winner && !timeOver) {
                 setIsThinking(true);
                 await new Promise(r => setTimeout(r, 600));
                 try {
-                    const move = await getBestCaroMove(state, difficulty || 'medium');
+                    const botDiff = subMode === 'challenge' ? 'hard' : (difficulty || 'medium');
+                    const move = await getBestCaroMove(state, botDiff);
                     if (isMounted && move) { setState(prev => makeCaroMove(prev, move.r, move.c)); }
                 } catch (e) { console.error("Bot failed", e); } finally { if (isMounted) setIsThinking(false); }
             }
         };
         runBot();
         return () => { isMounted = false; };
-    }, [state.turn, state.winner, mode, difficulty]);
+    }, [state.turn, state.winner, timeOver, mode, difficulty, subMode]);
 
     const handleCellClick = (r: number, c: number) => {
-        if (state.winner || isThinking) return;
+        if (state.winner || timeOver || isThinking) return;
         if (mode === 'bot' && state.turn !== 'X') return;
         if (state.board[r][c] !== null) return;
         setState(prev => makeCaroMove(prev, r, c));
     };
 
     const handleUndo = () => {
-        if (isThinking || state.history.length === 0) return;
+        if (isThinking || state.history.length === 0 || state.winner || timeOver) return;
         setState(prev => {
             let newState = undoCaroMove(prev);
             if (mode === 'bot' && newState.history.length > 0) { newState = undoCaroMove(newState); }
@@ -89,40 +121,21 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
     const handleReset = () => { 
         setState(initCaroGame()); 
         setEarnedCoins(0);
+        setXTime(INITIAL_TIME);
+        setOTime(INITIAL_TIME);
+        setTimeOver(null);
     };
 
-    const handleSave = () => {
-        const data = JSON.stringify(state);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `caro_${mode}_${new Date().getTime()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                const loaded = loadCaroGame(JSON.parse(ev.target?.result as string));
-                if (loaded) {
-                    setState(loaded);
-                    setEarnedCoins(0);
-                }
-            } catch (err) { alert("File lỗi"); }
-        };
-        reader.readAsText(file);
-        e.target.value = '';
-    };
-
-    const isPlayerTurn = (mode === 'bot' && state.turn === 'X') || mode === 'pvp';
     const turnColorClass = state.turn === 'X' ? 'text-blue-500' : 'text-red-500';
-    const statusMsg = state.winner 
-        ? (state.winner === 'draw' ? 'Hòa!' : `Người chơi ${state.winner} Thắng!`)
+    const finalWinner = timeOver ? (timeOver === 'X' ? 'O' : 'X') : state.winner;
+    const statusMsg = finalWinner 
+        ? (finalWinner === 'draw' ? 'Hòa!' : `${finalWinner === 'X' ? 'Xanh' : 'Đỏ'} Thắng!`)
         : (isThinking ? 'Máy đang tính...' : `Lượt: ${state.turn === 'X' ? 'Xanh (X)' : 'Đỏ (O)'}`);
 
     return (
@@ -131,22 +144,30 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <button onClick={onGoBack} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition"><Home size={20}/></button>
                     <div>
-                        <h2 className="text-xl font-bold flex items-center gap-2">Cờ Ca-rô {mode === 'bot' && <span className="text-xs bg-amber-600 px-2 py-0.5 rounded uppercase">{difficulty}</span>}</h2>
-                        <div className={`text-sm font-semibold ${state.winner ? 'text-yellow-400 animate-pulse' : turnColorClass}`}>{statusMsg}</div>
+                        <h2 className="text-xl font-bold flex items-center gap-2">Cờ Ca-rô <span className="text-xs bg-purple-600 px-2 py-0.5 rounded uppercase">{subMode}</span></h2>
+                        <div className={`text-sm font-semibold ${finalWinner ? 'text-yellow-400 animate-pulse' : turnColorClass}`}>{statusMsg}</div>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     <button onClick={() => setZoom(z => Math.max(z - 0.2, 0.6))} className="p-2 bg-gray-800 rounded hover:bg-gray-700"><ZoomOut size={18}/></button>
                     <button onClick={() => setZoom(z => Math.min(z + 0.2, 2.0))} className="p-2 bg-gray-800 rounded hover:bg-gray-700"><ZoomIn size={18}/></button>
                     <div className="w-px bg-gray-700 mx-1"></div>
-                    <button onClick={handleUndo} disabled={state.history.length === 0 || isThinking} className="p-2 bg-gray-800 rounded hover:bg-gray-700 disabled:opacity-50"><SkipBack size={18}/></button>
+                    <button onClick={handleUndo} disabled={state.history.length === 0 || isThinking || !!finalWinner} className="p-2 bg-gray-800 rounded hover:bg-gray-700 disabled:opacity-50"><SkipBack size={18}/></button>
                     <button onClick={handleReset} className="p-2 bg-blue-600 rounded hover:bg-blue-500"><RefreshCw size={18}/></button>
-                    <div className="w-px bg-gray-700 mx-1"></div>
-                    <button onClick={handleSave} className="p-2 bg-gray-800 rounded hover:bg-gray-700"><Download size={18}/></button>
-                    <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-gray-800 rounded hover:bg-gray-700"><Upload size={18}/></button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".json"/>
                 </div>
             </div>
+
+            {subMode === 'time' && (
+                <div className="w-full flex justify-between px-4 mb-2 max-w-[500px]">
+                    <div className={`px-4 py-2 rounded-lg font-mono text-xl border-2 ${state.turn === 'X' ? 'bg-blue-600 text-white border-blue-400 scale-110' : 'bg-gray-800 text-gray-400 border-transparent'} transition-all`}>
+                        <Clock className="inline mr-2" size={16}/>{formatTime(xTime)}
+                    </div>
+                    <div className={`px-4 py-2 rounded-lg font-mono text-xl border-2 ${state.turn === 'O' ? 'bg-red-600 text-white border-red-400 scale-110' : 'bg-gray-800 text-gray-400 border-transparent'} transition-all`}>
+                        <Clock className="inline mr-2" size={16}/>{formatTime(oTime)}
+                    </div>
+                </div>
+            )}
+
             <div className="w-full flex-1 relative overflow-hidden bg-[#2a2a2a] rounded-xl shadow-inner flex flex-col">
                 <div ref={boardRef} className="overflow-auto flex-1 p-8 flex justify-center items-center">
                     <div className="bg-[#eecfa1] p-4 shadow-2xl rounded border-4 border-[#8b4513] relative transition-transform duration-200 ease-out origin-center" style={{ transform: `scale(${zoom})` }}>
@@ -165,19 +186,18 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
                         </div>
                     </div>
                 </div>
-                {state.winner && (
+                {(state.winner || timeOver) && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in">
-                        <div className="bg-white p-8 rounded-2xl shadow-2xl text-center transform scale-100 animate-bounce-in max-w-sm mx-4">
-                            <h3 className="text-3xl font-extrabold text-gray-800 mb-2">{state.winner === 'draw' ? 'Hòa!' : `${state.winner === 'X' ? 'Xanh' : 'Đỏ'} Thắng!`}</h3>
-                            <p className="text-gray-500 mb-6">Trận đấu đã kết thúc.</p>
-                             {earnedCoins > 0 && (
+                        <div className="bg-white p-8 rounded-2xl shadow-2xl text-center animate-bounce-in max-w-sm mx-4">
+                            <h3 className="text-3xl font-extrabold text-gray-800 mb-2">{finalWinner === 'draw' ? 'Hòa!' : `${finalWinner === 'X' ? 'Xanh' : 'Đỏ'} Thắng!`}</h3>
+                            {timeOver && <p className="text-red-500 font-bold mb-2">Hết thời gian!</p>}
+                            {earnedCoins > 0 && (
                                 <div className="mb-4 text-xl font-bold text-yellow-500 flex items-center justify-center gap-2 animate-pulse">
-                                    <span>+{earnedCoins}</span> <span>🪙</span>
+                                    <span>+{earnedCoins} 🪙</span>
                                 </div>
                             )}
                             <div className="flex gap-4 justify-center">
-                                <button onClick={onGoBack} className="px-5 py-2.5 rounded-lg bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 transition">Thoát</button>
-                                <button onClick={handleReset} className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 transition">Chơi Lại</button>
+                                <button onClick={handleReset} className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Chơi Lại</button>
                             </div>
                         </div>
                     </div>
