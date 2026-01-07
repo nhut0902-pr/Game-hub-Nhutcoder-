@@ -36,22 +36,27 @@ export default function App() {
   useEffect(() => { localStorage.setItem('vina_owned_items', JSON.stringify(ownedItems)); }, [ownedItems]);
   useEffect(() => { localStorage.setItem('vina_active_items', JSON.stringify(activeItems)); }, [activeItems]);
 
-  const handleBuyItem = (item: ShopItem) => {
-      if (coins >= item.price && !ownedItems.includes(item.id)) {
-          setCoins(prev => prev - item.price);
-          setOwnedItems(prev => [...prev, item.id]);
-          
-          // Auto equip if it's the first bought of its type? Or just let user equip.
-          // Let's just buy it.
-      }
-  };
-
   const handleEquipItem = (item: ShopItem) => {
       if (item.type === 'theme') {
           setActiveItems(prev => ({ ...prev, theme: item.id }));
       } else if (item.type === 'piece_style') {
           setActiveItems(prev => ({ ...prev, piece_style: item.id }));
       }
+  };
+
+  const handleBuyItem = (item: ShopItem) => {
+      if (coins >= item.price && !ownedItems.includes(item.id)) {
+          setCoins(prev => prev - item.price);
+          setOwnedItems(prev => [...prev, item.id]);
+          // Tự động trang bị sau khi mua nếu là theme hoặc quân cờ
+          if (item.type === 'theme' || item.type === 'piece_style') {
+              handleEquipItem(item);
+          }
+      }
+  };
+
+  const handleEarnCoins = (amount: number) => {
+      setCoins(prev => prev + amount);
   };
 
   // Handlers
@@ -83,9 +88,6 @@ export default function App() {
   const goBackToMenu = () => {
       setGameMode('menu');
       setShowDifficultySelect(false);
-      // Giả lập nhận xu khi chơi xong
-      const earned = Math.floor(Math.random() * 50) + 10;
-      setCoins(prev => prev + earned);
   };
 
   const ToggleEffectButton = () => (
@@ -228,9 +230,15 @@ export default function App() {
                         onGoBack={goBackToMenu} 
                         theme={activeItems.theme}
                         pieceStyle={activeItems.piece_style}
+                        onEarnCoins={handleEarnCoins}
                     />
                 ) : (
-                    <CaroBoard mode={gameMode} difficulty={botDifficulty} onGoBack={goBackToMenu} />
+                    <CaroBoard 
+                        mode={gameMode} 
+                        difficulty={botDifficulty} 
+                        onGoBack={goBackToMenu}
+                        onEarnCoins={handleEarnCoins}
+                    />
                 )}
             </div>
         )}

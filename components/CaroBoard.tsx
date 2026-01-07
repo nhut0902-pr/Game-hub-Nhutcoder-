@@ -8,16 +8,43 @@ interface CaroBoardProps {
     mode: GameMode;
     difficulty?: BotDifficulty;
     onGoBack: () => void;
+    onEarnCoins: (amount: number) => void;
 }
 
-const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack }) => {
+const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEarnCoins }) => {
     const [state, setState] = useState<CaroState>(initCaroGame());
     const [isThinking, setIsThinking] = useState(false);
     const [zoom, setZoom] = useState(1);
+    const [earnedCoins, setEarnedCoins] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const boardRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { setState(initCaroGame()); }, [mode, difficulty]);
+    useEffect(() => { 
+        setState(initCaroGame()); 
+        setEarnedCoins(0);
+    }, [mode, difficulty]);
+
+    useEffect(() => {
+        if (state.winner && earnedCoins === 0) {
+             let reward = 0;
+             if (state.winner === 'draw') {
+                 reward = 20;
+             } else {
+                 // Winner is state.winner ('X' or 'O')
+                 if (mode === 'bot') {
+                     // Bot is usually 'O', Player 'X'
+                     if (state.winner === 'X') reward = 80;
+                     else reward = 10;
+                 } else {
+                     reward = 40;
+                 }
+             }
+             if (reward > 0) {
+                 setEarnedCoins(reward);
+                 onEarnCoins(reward);
+             }
+        }
+    }, [state.winner, earnedCoins, mode, onEarnCoins]);
 
     useEffect(() => {
         if (boardRef.current) {
@@ -59,7 +86,10 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack }) => 
         });
     };
 
-    const handleReset = () => { setState(initCaroGame()); };
+    const handleReset = () => { 
+        setState(initCaroGame()); 
+        setEarnedCoins(0);
+    };
 
     const handleSave = () => {
         const data = JSON.stringify(state);
@@ -79,7 +109,10 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack }) => 
         reader.onload = (ev) => {
             try {
                 const loaded = loadCaroGame(JSON.parse(ev.target?.result as string));
-                if (loaded) setState(loaded);
+                if (loaded) {
+                    setState(loaded);
+                    setEarnedCoins(0);
+                }
             } catch (err) { alert("File lỗi"); }
         };
         reader.readAsText(file);
@@ -137,6 +170,11 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack }) => 
                         <div className="bg-white p-8 rounded-2xl shadow-2xl text-center transform scale-100 animate-bounce-in max-w-sm mx-4">
                             <h3 className="text-3xl font-extrabold text-gray-800 mb-2">{state.winner === 'draw' ? 'Hòa!' : `${state.winner === 'X' ? 'Xanh' : 'Đỏ'} Thắng!`}</h3>
                             <p className="text-gray-500 mb-6">Trận đấu đã kết thúc.</p>
+                             {earnedCoins > 0 && (
+                                <div className="mb-4 text-xl font-bold text-yellow-500 flex items-center justify-center gap-2 animate-pulse">
+                                    <span>+{earnedCoins}</span> <span>🪙</span>
+                                </div>
+                            )}
                             <div className="flex gap-4 justify-center">
                                 <button onClick={onGoBack} className="px-5 py-2.5 rounded-lg bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 transition">Thoát</button>
                                 <button onClick={handleReset} className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 transition">Chơi Lại</button>

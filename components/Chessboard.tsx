@@ -11,6 +11,7 @@ interface ChessboardProps {
     onGoBack: () => void;
     theme: string;
     pieceStyle: string;
+    onEarnCoins: (amount: number) => void;
 }
 
 // Color maps for themes
@@ -21,7 +22,7 @@ const THEME_COLORS: Record<string, { light: string, dark: string }> = {
     'theme_space': { light: '#4a4e69', dark: '#22223b' },
 };
 
-const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, theme, pieceStyle }) => {
+const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, theme, pieceStyle, onEarnCoins }) => {
     const [, setTick] = useState(0);
     const forceUpdate = () => setTick(t => t + 1);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -30,6 +31,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
     const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
     const [lastMove, setLastMove] = useState<{from: string, to: string} | null>(null);
     const [isThinking, setIsThinking] = useState(false);
+    const [earnedCoins, setEarnedCoins] = useState(0);
     
     const game = getGame();
     const turn = getTurn();
@@ -44,8 +46,36 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
         setLastMove(null);
         setSelectedSquare(null);
         setPossibleMoves([]);
+        setEarnedCoins(0);
         forceUpdate();
     }, [mode, difficulty]);
+
+    useEffect(() => {
+        if (gameOver && earnedCoins === 0) {
+            let reward = 0;
+            if (game.isCheckmate()) {
+                // Determine winner. If turn is 'w', 'b' won.
+                const winnerColor = turn === 'w' ? 'b' : 'w';
+                if (mode === 'bot') {
+                    // Bot logic: Player is usually White. 
+                    // If winner is White, Player won.
+                    if (winnerColor === 'w') reward = 100;
+                    else reward = 10; // Console prize for losing
+                } else {
+                    reward = 50; // PvP reward
+                }
+            } else if (game.isDraw()) {
+                reward = 20;
+            } else {
+                reward = 5;
+            }
+            
+            if (reward > 0) {
+                setEarnedCoins(reward);
+                onEarnCoins(reward);
+            }
+        }
+    }, [gameOver, earnedCoins, mode, onEarnCoins, game, turn]);
 
     useEffect(() => {
         if (mode === 'bot' && turn === 'b' && !gameOver) {
@@ -105,6 +135,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
         setLastMove(null);
         setSelectedSquare(null);
         setPossibleMoves([]);
+        setEarnedCoins(0);
         forceUpdate();
     };
 
@@ -148,6 +179,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                     } else { setLastMove(null); }
                     setSelectedSquare(null);
                     setPossibleMoves([]);
+                    setEarnedCoins(0);
                     forceUpdate();
                 } else { alert("Không thể tải ván đấu. File PGN không hợp lệ."); }
             }
@@ -237,6 +269,11 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                         <div className="bg-white text-gray-900 p-6 rounded-xl shadow-2xl text-center animate-bounce-in">
                             <h3 className="text-2xl font-bold mb-2">Trận Đấu Kết Thúc</h3>
                             <p className="text-lg mb-4 text-amber-700 font-semibold">{statusText}</p>
+                            {earnedCoins > 0 && (
+                                <div className="mb-4 text-xl font-bold text-yellow-500 flex items-center justify-center gap-2 animate-pulse">
+                                    <span>+{earnedCoins}</span> <span>🪙</span>
+                                </div>
+                            )}
                             <button onClick={handleReset} className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-bold">Chơi Lại</button>
                         </div>
                     </div>
