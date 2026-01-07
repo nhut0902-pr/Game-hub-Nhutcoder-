@@ -1,4 +1,4 @@
-import React from 'https://esm.sh/react@19.0.0';
+import React from 'react';
 import { PieceType, PlayerColor } from '../types';
 
 interface PieceProps {
