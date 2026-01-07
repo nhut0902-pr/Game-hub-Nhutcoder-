@@ -1,16 +1,9 @@
-import { Chess } from 'chess.js';
-
-// NOTE: We rely on the window.Chess injection from index.html for browser environments 
-// that don't have a bundler, but for proper TS support we import it.
-// If running in a raw ESM environment without node_modules, this import might need adjustment.
-// We'll wrap the instantiation to be safe.
+import { Chess } from 'https://esm.sh/chess.js@1.0.0-beta.8';
 
 let chessInstance: Chess;
 
 export const initGame = (fen?: string) => {
-    // @ts-ignore - Handle the case where Chess might be on window in no-bundler envs
-    const ChessCtor = (typeof window !== 'undefined' && (window as any).Chess) ? (window as any).Chess : Chess;
-    chessInstance = new ChessCtor(fen);
+    chessInstance = new Chess(fen);
     return chessInstance;
 };
 

@@ -1,4 +1,4 @@
-import { Chess } from 'chess.js';
+import { Chess } from 'https://esm.sh/chess.js@1.0.0-beta.8';
 import { BotDifficulty } from '../types';
 
 // Weight of pieces
@@ -11,10 +11,9 @@ const PIECE_VALUES: Record<string, number> = {
     k: 900,
 };
 
-// Simplified position evaluation tables (incentivize center control)
 const PAWN_TABLE = [
     [0,  0,  0,  0,  0,  0,  0,  0],
-    [5, 10, 10, -20, -20, 10, 10,  5], // Penalty for center pawns to encourage moving them? Actually standard tables usually reward advancement.
+    [5, 10, 10, -20, -20, 10, 10,  5],
     [5, -5, -10,  0,  0, -10, -5,  5],
     [0,  0,  0, 20, 20,  0,  0,  0],
     [5,  5, 10, 25, 25, 10,  5,  5],
@@ -34,19 +33,16 @@ const KNIGHT_TABLE = [
     [-50,-40,-30,-30,-30,-30,-40,-50]
 ];
 
-// Helper to get piece value with position adjustment
 const getPieceValue = (piece: any, rowIndex: number, colIndex: number): number => {
     if (!piece) return 0;
     
     let val = PIECE_VALUES[piece.type] || 0;
     const isWhite = piece.color === 'w';
-    
-    // Adjust row index for black to mirror the board
     const r = isWhite ? 7 - rowIndex : rowIndex;
-    const c = colIndex; // Symmetric horizontally roughly
+    const c = colIndex;
 
     if (piece.type === 'p') {
-        val += (PAWN_TABLE[r]?.[c] || 0) / 10; // Divided scale
+        val += (PAWN_TABLE[r]?.[c] || 0) / 10;
     } else if (piece.type === 'n') {
         val += (KNIGHT_TABLE[r]?.[c] || 0) / 10;
     }
@@ -66,7 +62,6 @@ const evaluateBoard = (game: Chess): number => {
     return totalEvaluation;
 };
 
-// Minimax with Alpha-Beta Pruning
 const minimax = (game: Chess, depth: number, alpha: number, beta: number, isMaximizingPlayer: boolean): number => {
     if (depth === 0 || game.isGameOver()) {
         return evaluateBoard(game);
@@ -100,16 +95,11 @@ const minimax = (game: Chess, depth: number, alpha: number, beta: number, isMaxi
 };
 
 export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medium'): Promise<string | null> => {
-    // We instantiate a new chess object for calculation to not mess with the UI state
-    // @ts-ignore
-    const ChessCtor = (typeof window !== 'undefined' && (window as any).Chess) ? (window as any).Chess : Chess;
-    const game = new ChessCtor(fen);
+    const game = new Chess(fen);
     
     const possibleMoves = game.moves();
     if (possibleMoves.length === 0) return null;
 
-    // Difficulty Logic
-    // Easy: Random move
     if (difficulty === 'easy') {
         return new Promise((resolve) => {
              setTimeout(() => {
@@ -119,7 +109,6 @@ export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medi
         });
     }
 
-    // Determine depth based on difficulty
     const depth = difficulty === 'hard' ? 3 : 2; 
 
     let bestMove = null;
@@ -145,7 +134,6 @@ export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medi
                     }
                 }
             }
-            // Fallback to random if no best move found (rare)
             resolve(bestMove || possibleMoves[Math.floor(Math.random() * possibleMoves.length)]);
         }, 50); 
     });
