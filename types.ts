@@ -6,6 +6,9 @@ export type GameType = 'chess' | 'caro';
 
 export type BotDifficulty = 'easy' | 'medium' | 'hard';
 
+// Shop Types
+export type ItemType = 'theme' | 'piece_style' | 'utility' | 'music' | 'avatar' | 'effect';
+
 // Chess Types
 export interface GameState {
   fen: string;
@@ -28,6 +31,9 @@ export interface SquareProps {
   isPossibleMove: boolean;
   isCheck: boolean;
   onClick: () => void;
+  // Visual props
+  themeColors: { light: string, dark: string };
+  pieceStyle: string;
 }
 
 // Caro Types

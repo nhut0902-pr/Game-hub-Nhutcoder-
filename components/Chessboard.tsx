@@ -9,9 +9,19 @@ interface ChessboardProps {
     mode: GameMode;
     difficulty?: BotDifficulty;
     onGoBack: () => void;
+    theme: string;
+    pieceStyle: string;
 }
 
-const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack }) => {
+// Color maps for themes
+const THEME_COLORS: Record<string, { light: string, dark: string }> = {
+    'theme_wood': { light: '#e8cfa6', dark: '#8f5e36' },
+    'theme_neon': { light: '#222222', dark: '#00ff41' },
+    'theme_glass': { light: 'rgba(255,255,255,0.8)', dark: 'rgba(255,255,255,0.3)' },
+    'theme_space': { light: '#4a4e69', dark: '#22223b' },
+};
+
+const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, theme, pieceStyle }) => {
     const [, setTick] = useState(0);
     const forceUpdate = () => setTick(t => t + 1);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,6 +35,9 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack }) =
     const turn = getTurn();
     const check = inCheck();
     const gameOver = isGameOver();
+
+    // Get current theme colors, default to wood if not found
+    const currentThemeColors = THEME_COLORS[theme] || THEME_COLORS['theme_wood'];
 
     useEffect(() => {
         resetGame();
@@ -191,7 +204,14 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack }) =
                     </button>
                 </div>
             </div>
-            <div className="relative w-full aspect-square max-w-[500px] shadow-2xl rounded-sm overflow-hidden border-8 border-[#5c3a21]">
+            
+            {/* Board Container with Theme Styling */}
+            <div className={`relative w-full aspect-square max-w-[500px] shadow-2xl rounded-sm overflow-hidden border-8 transition-colors duration-500`}
+                style={{ 
+                    borderColor: theme === 'theme_neon' ? '#0f0f0f' : '#5c3a21',
+                    boxShadow: theme === 'theme_neon' ? '0 0 20px #00ff41' : '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                }}
+            >
                 <div className="w-full h-full grid grid-cols-8 grid-rows-8">
                     {ranks.map((rank, rIndex) => (
                         files.map((file, cIndex) => {
@@ -205,6 +225,8 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack }) =
                                 <Square 
                                     key={square} square={square} piece={piece} isLight={isLight} isSelected={isSelected}
                                     isPossibleMove={isPossible} isLastMove={isLast} isCheck={check} onClick={() => handleSquareClick(square)}
+                                    themeColors={currentThemeColors}
+                                    pieceStyle={pieceStyle}
                                 />
                             );
                         })

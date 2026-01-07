@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Chessboard from './components/Chessboard';
 import CaroBoard from './components/CaroBoard';
 import TetEffect from './components/TetEffect';
 import SystemMonitor from './components/SystemMonitor';
+import Shop, { ShopItem } from './components/Shop';
 import { GameMode, BotDifficulty, GameType } from './types';
 import { 
-  Bot, Users, Crown, ArrowLeft, Swords, Brain, Zap, Grid3X3, Castle, Flower2 
+  Bot, Users, Crown, ArrowLeft, Swords, Brain, Zap, Grid3X3, Castle, Flower2, ShoppingBag, PlusCircle
 } from 'lucide-react';
 
 export default function App() {
@@ -14,6 +15,44 @@ export default function App() {
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
   const [showDifficultySelect, setShowDifficultySelect] = useState(false);
   const [showTetEffect, setShowTetEffect] = useState(true);
+  
+  // Shop & Economy State - LOAD FROM LOCALSTORAGE
+  const [showShop, setShowShop] = useState(false);
+  const [coins, setCoins] = useState(() => {
+      const saved = localStorage.getItem('vina_coins');
+      return saved ? parseInt(saved) : 2500;
+  });
+  const [ownedItems, setOwnedItems] = useState<string[]>(() => {
+      const saved = localStorage.getItem('vina_owned_items');
+      return saved ? JSON.parse(saved) : ['theme_wood', 'piece_standard'];
+  });
+  const [activeItems, setActiveItems] = useState<Record<string, string>>(() => {
+      const saved = localStorage.getItem('vina_active_items');
+      return saved ? JSON.parse(saved) : { theme: 'theme_wood', piece_style: 'piece_standard' };
+  });
+
+  // Save to LocalStorage whenever state changes
+  useEffect(() => { localStorage.setItem('vina_coins', coins.toString()); }, [coins]);
+  useEffect(() => { localStorage.setItem('vina_owned_items', JSON.stringify(ownedItems)); }, [ownedItems]);
+  useEffect(() => { localStorage.setItem('vina_active_items', JSON.stringify(activeItems)); }, [activeItems]);
+
+  const handleBuyItem = (item: ShopItem) => {
+      if (coins >= item.price && !ownedItems.includes(item.id)) {
+          setCoins(prev => prev - item.price);
+          setOwnedItems(prev => [...prev, item.id]);
+          
+          // Auto equip if it's the first bought of its type? Or just let user equip.
+          // Let's just buy it.
+      }
+  };
+
+  const handleEquipItem = (item: ShopItem) => {
+      if (item.type === 'theme') {
+          setActiveItems(prev => ({ ...prev, theme: item.id }));
+      } else if (item.type === 'piece_style') {
+          setActiveItems(prev => ({ ...prev, piece_style: item.id }));
+      }
+  };
 
   // Handlers
   const handleSelectGame = (game: GameType) => {
@@ -44,6 +83,9 @@ export default function App() {
   const goBackToMenu = () => {
       setGameMode('menu');
       setShowDifficultySelect(false);
+      // Giả lập nhận xu khi chơi xong
+      const earned = Math.floor(Math.random() * 50) + 10;
+      setCoins(prev => prev + earned);
   };
 
   const ToggleEffectButton = () => (
@@ -55,6 +97,22 @@ export default function App() {
           <Flower2 size={20} className={showTetEffect ? 'animate-spin-slow' : ''} />
           <span className="text-xs font-bold hidden md:inline">{showTetEffect ? 'Tết 2026 On' : 'Tết Off'}</span>
       </button>
+  );
+
+  const ShopButton = () => (
+    <button 
+        onClick={() => setShowShop(true)}
+        className="fixed top-16 right-4 z-50 p-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white rounded-full shadow-lg shadow-amber-900/40 transition-all hover:scale-105 group border border-amber-400/30"
+        title="Cửa hàng vật phẩm"
+    >
+        <div className="flex items-center gap-2 px-1">
+            <ShoppingBag size={20} className="group-hover:animate-bounce" />
+            <div className="flex flex-col items-start leading-none">
+                <span className="text-[10px] text-amber-200 uppercase font-bold">Shop</span>
+                <span className="text-xs font-bold">{coins.toLocaleString()} 🪙</span>
+            </div>
+        </div>
+    </button>
   );
 
   const FooterCredit = () => (
@@ -80,18 +138,30 @@ export default function App() {
         {showTetEffect && <TetEffect />}
         <SystemMonitor />
         <ToggleEffectButton />
+        <ShopButton />
+        
+        <Shop 
+            isOpen={showShop} 
+            onClose={() => setShowShop(false)} 
+            coins={coins}
+            ownedItems={ownedItems}
+            activeItems={activeItems}
+            onBuy={handleBuyItem}
+            onEquip={handleEquipItem}
+        />
 
         {!activeGame ? (
-            <div className="z-10 text-center animate-fade-in px-4">
+            <div className="z-10 text-center animate-fade-in px-4 mt-12 md:mt-0">
                 {showTetEffect && (
                     <div className="mb-6 animate-bounce-in select-none">
                         <h2 className="text-3xl md:text-5xl font-extrabold text-[#e63946] drop-shadow-[0_2px_0_rgba(255,215,0,1)] font-serif tracking-widest uppercase mb-1">Happy New Year</h2>
                         <div className="text-4xl md:text-6xl font-black text-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">2026</div>
                     </div>
                 )}
-                <div className="mb-8 p-6 bg-gray-800/80 backdrop-blur-lg rounded-full shadow-2xl border border-gray-700 inline-block relative">
-                    <Crown size={64} className="text-amber-500" />
+                <div className="mb-8 p-6 bg-gray-800/80 backdrop-blur-lg rounded-full shadow-2xl border border-gray-700 inline-block relative group cursor-pointer" onClick={() => setShowShop(true)}>
+                    <Crown size={64} className="text-amber-500 group-hover:scale-110 transition-transform duration-300" />
                     {showTetEffect && <div className="absolute -top-2 -right-2 text-2xl animate-bounce">🌸</div>}
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold opacity-0 group-hover:opacity-100 transition-opacity">VIP SHOP</div>
                 </div>
                 <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 mb-2 drop-shadow-sm">VinaGames</h1>
                 <p className="text-gray-400 mb-12 text-lg">Chọn trò chơi yêu thích của bạn</p>
@@ -109,8 +179,8 @@ export default function App() {
                 </div>
             </div>
         ) : showDifficultySelect ? (
-            <div className="z-10 w-full max-w-lg px-4 animate-fade-in text-center">
-                <button onClick={() => setShowDifficultySelect(false)} className="absolute top-8 left-8 p-3 bg-gray-800 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white transition">
+            <div className="z-10 w-full max-w-lg px-4 animate-fade-in text-center mt-12 md:mt-0">
+                <button onClick={() => setShowDifficultySelect(false)} className="absolute top-20 md:top-8 left-4 md:left-8 p-3 bg-gray-800 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white transition shadow-lg border border-gray-700">
                     <ArrowLeft size={24} />
                 </button>
                 <h2 className="text-3xl font-bold text-white mb-8">Chọn Độ Khó ({activeGame === 'chess' ? 'Cờ Vua' : 'Ca-rô'})</h2>
@@ -130,8 +200,8 @@ export default function App() {
                 </div>
             </div>
         ) : gameMode === 'menu' ? (
-            <div className="z-10 flex flex-col items-center justify-center animate-fade-in text-center">
-                <button onClick={goHome} className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-white transition z-20">
+            <div className="z-10 flex flex-col items-center justify-center animate-fade-in text-center mt-12 md:mt-0">
+                <button onClick={goHome} className="absolute top-20 md:top-8 left-4 md:left-8 flex items-center gap-2 text-gray-400 hover:text-white transition z-20 bg-gray-800/50 px-3 py-1.5 rounded-full border border-gray-700">
                     <ArrowLeft size={20} /> <span className="font-bold">Đổi Game</span>
                 </button>
                 <h1 className="text-4xl font-bold text-white mb-2">{activeGame === 'chess' ? 'Cờ Vua' : 'Cờ Ca-rô'}</h1>
@@ -150,9 +220,15 @@ export default function App() {
                 </div>
             </div>
         ) : (
-            <div className="z-10 w-full max-w-4xl px-4 animate-fade-in">
+            <div className="z-10 w-full max-w-4xl px-4 animate-fade-in mt-14">
                 {activeGame === 'chess' ? (
-                    <Chessboard mode={gameMode} difficulty={botDifficulty} onGoBack={goBackToMenu} />
+                    <Chessboard 
+                        mode={gameMode} 
+                        difficulty={botDifficulty} 
+                        onGoBack={goBackToMenu} 
+                        theme={activeItems.theme}
+                        pieceStyle={activeItems.piece_style}
+                    />
                 ) : (
                     <CaroBoard mode={gameMode} difficulty={botDifficulty} onGoBack={goBackToMenu} />
                 )}

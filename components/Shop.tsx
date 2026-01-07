@@ -1,0 +1,162 @@
+import React from 'react';
+import { X, ShoppingBag, Check, ShieldCheck } from 'lucide-react';
+import { ItemType } from '../types';
+
+export interface ShopItem {
+    id: string;
+    name: string;
+    price: number;
+    icon: string;
+    description: string;
+    type: ItemType;
+}
+
+export const SHOP_ITEMS: ShopItem[] = [
+    // Themes
+    { id: 'theme_wood', type: 'theme', name: 'Bàn Gỗ Sồi', price: 0, icon: '🟫', description: 'Giao diện cổ điển mộc mạc' },
+    { id: 'theme_neon', type: 'theme', name: 'Bàn Neon', price: 500, icon: '✨', description: 'Phong cách Cyberpunk cực chất' },
+    { id: 'theme_glass', type: 'theme', name: 'Bàn Thủy Tinh', price: 1000, icon: '🧊', description: 'Trong suốt tinh tế sang trọng' },
+    { id: 'theme_space', type: 'theme', name: 'Nền Vũ Trụ', price: 1200, icon: '🌌', description: 'Thi đấu giữa ngân hà' },
+    
+    // Pieces
+    { id: 'piece_standard', type: 'piece_style', name: 'Quân Tiêu Chuẩn', price: 0, icon: '♟️', description: 'Bộ cờ quốc tế chuẩn' },
+    { id: 'piece_gold', type: 'piece_style', name: 'Quân Vàng', price: 2500, icon: '🏆', description: 'Bộ cờ mạ vàng 24k' },
+    { id: 'piece_diamond', type: 'piece_style', name: 'Quân Kim Cương', price: 5000, icon: '💎', description: 'Lấp lánh đẳng cấp thượng lưu' },
+
+    // Utilities & Others
+    { id: 'undo_pack', type: 'utility', name: 'Gói Hoàn Tác', price: 100, icon: '↺', description: 'Cho phép đi lại nước cờ' },
+    { id: 'hint_pack', type: 'utility', name: 'Gói Gợi Ý', price: 200, icon: '💡', description: 'Máy chỉ nước đi tối ưu' },
+    { id: 'avatar_dragon', type: 'avatar', name: 'Avatar Rồng', price: 1500, icon: '🐉', description: 'Biểu tượng uy quyền rực lửa' },
+    { id: 'chat_color', type: 'utility', name: 'Màu Chat Vàng', price: 800, icon: '💬', description: 'Nổi bật trong kênh chat' },
+    { id: 'vip_badge', type: 'utility', name: 'Huy Hiệu VIP', price: 10000, icon: '👑', description: 'Đẳng cấp đại gia VinaGames' },
+    { id: 'no_ads', type: 'utility', name: 'Tắt Quảng Cáo', price: 5000, icon: '🚫', description: 'Trải nghiệm mượt mà không phiền' },
+    { id: 'exp_x2', type: 'utility', name: 'X2 Kinh Nghiệm', price: 1500, icon: '📈', description: 'Lên cấp thần tốc' },
+    { id: 'god_mode', type: 'utility', name: 'Chế Độ Thần', price: 99999, icon: '😇', description: 'Sức mạnh bất khả chiến bại' },
+];
+
+interface ShopProps {
+    isOpen: boolean;
+    onClose: () => void;
+    coins: number;
+    ownedItems: string[];
+    activeItems: Record<string, string>; // { theme: 'theme_wood', piece_style: 'piece_gold' }
+    onBuy: (item: ShopItem) => void;
+    onEquip: (item: ShopItem) => void;
+}
+
+const Shop: React.FC<ShopProps> = ({ isOpen, onClose, coins, ownedItems, activeItems, onBuy, onEquip }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
+            <div className="bg-[#1a1a1a] w-full max-w-5xl h-[85vh] rounded-2xl border border-amber-500/30 flex flex-col shadow-2xl relative overflow-hidden">
+                {/* Header */}
+                <div className="p-4 md:p-6 border-b border-gray-800 flex justify-between items-center bg-gradient-to-r from-[#1a1a1a] via-[#252525] to-[#1a1a1a]">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl shadow-lg shadow-amber-900/50">
+                            <ShoppingBag className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-white tracking-tight">Cửa Hàng</h2>
+                            <p className="text-gray-400 text-xs md:text-sm">Nâng cấp trải nghiệm VinaGames</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 md:gap-4">
+                        <div className="px-4 py-2 bg-black/40 rounded-full border border-amber-500/50 text-amber-400 font-mono font-bold flex items-center gap-2 shadow-inner">
+                            <span className="text-xl">🪙</span>
+                            <span className="text-lg">{coins.toLocaleString()}</span>
+                        </div>
+                        <button onClick={onClose} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition shadow-md">
+                            <X size={24} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Grid Content */}
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {SHOP_ITEMS.map((item) => {
+                            const isOwned = ownedItems.includes(item.id) || item.price === 0;
+                            const isActive = (item.type === 'theme' && activeItems.theme === item.id) || 
+                                             (item.type === 'piece_style' && activeItems.piece_style === item.id);
+                            const canBuy = coins >= item.price;
+                            const isEquippable = item.type === 'theme' || item.type === 'piece_style';
+
+                            return (
+                                <div key={item.id} className={`relative group p-4 rounded-xl border transition-all duration-300 flex flex-col gap-3 ${
+                                    isActive
+                                        ? 'border-green-400 bg-green-900/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]'
+                                        : isOwned 
+                                            ? 'border-gray-600 bg-gray-800/40' 
+                                            : 'border-gray-700 bg-gray-800/40 hover:bg-gray-800 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1'
+                                }`}>
+                                    <div className="flex justify-between items-start">
+                                        <div className="w-12 h-12 flex items-center justify-center bg-black/30 rounded-lg text-3xl shadow-inner">
+                                            {item.icon}
+                                        </div>
+                                        {isActive ? (
+                                             <div className="px-2 py-0.5 bg-green-500 text-black text-[10px] rounded-full font-bold flex items-center gap-1">
+                                                <ShieldCheck size={10} /> ĐANG DÙNG
+                                            </div>
+                                        ) : isOwned && (
+                                            <div className="px-2 py-0.5 bg-gray-700 text-gray-300 text-[10px] rounded-full font-bold flex items-center gap-1 border border-gray-600">
+                                                <Check size={10} /> ĐÃ CÓ
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex-1">
+                                        <h3 className={`font-bold text-base md:text-lg transition-colors ${isActive ? 'text-green-400' : isOwned ? 'text-gray-200' : 'text-white group-hover:text-amber-400'}`}>
+                                            {item.name}
+                                        </h3>
+                                        <p className="text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2 h-8">
+                                            {item.description}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-2 pt-3 border-t border-white/5">
+                                        {isActive ? (
+                                            <button disabled className="w-full py-2 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg cursor-default border border-green-500/20">
+                                                ĐANG TRANG BỊ
+                                            </button>
+                                        ) : isOwned ? (
+                                            isEquippable ? (
+                                                <button 
+                                                    onClick={() => onEquip(item)}
+                                                    className="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded-lg transition-colors border border-gray-600"
+                                                >
+                                                    TRANG BỊ NGAY
+                                                </button>
+                                            ) : (
+                                                <button disabled className="w-full py-2 bg-gray-800 text-gray-500 text-xs font-bold rounded-lg cursor-default">
+                                                    ĐÃ SỞ HỮU
+                                                </button>
+                                            )
+                                        ) : (
+                                            <button 
+                                                onClick={() => onBuy(item)}
+                                                disabled={!canBuy}
+                                                className={`w-full py-2 flex items-center justify-center gap-1.5 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95 ${
+                                                    canBuy 
+                                                    ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white shadow-amber-900/20' 
+                                                    : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-70'
+                                                }`}
+                                            >
+                                                {canBuy ? 'Mua Ngay' : 'Thiếu Xu'}
+                                                <span className="bg-black/20 px-1.5 py-0.5 rounded text-xs ml-1">
+                                                    {item.price.toLocaleString()}
+                                                </span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Shop;
