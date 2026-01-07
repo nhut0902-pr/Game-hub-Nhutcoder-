@@ -1,0 +1,5 @@
+{
+  "name": "VinaGames",
+  "description": "Nền tảng game trí tuệ Việt: Cờ Vua và Cờ Ca-rô (Gomoku). Hỗ trợ chơi với máy (AI) hoặc hai người chơi, lưu game và tùy chỉnh độ khó.",
+  "requestFramePermissions": []
+}
