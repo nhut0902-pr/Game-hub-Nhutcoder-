@@ -1,4 +1,4 @@
-import { Chess } from 'https://esm.sh/chess.js@1.0.0-beta.8';
+import { Chess } from 'chess.js';
 
 let chessInstance: Chess;
 

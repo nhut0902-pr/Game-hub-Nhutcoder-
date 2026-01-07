@@ -1,4 +1,4 @@
-import React, { useMemo } from 'https://esm.sh/react@19.0.0';
+import React, { useMemo } from 'react';
 
 const FLOWER_COUNT = 35;
 

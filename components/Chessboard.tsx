@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'https://esm.sh/react@19.0.0';
+import React, { useState, useEffect, useRef } from 'react';
 import Square from './Square';
 import { getGame, makeMove, getPossibleMoves, isGameOver, getTurn, inCheck, getBoard, resetGame, getPgn, loadPgn } from '../services/chessService';
 import { getBestMove } from '../services/botService';
 import { PlayerColor, GameMode, BotDifficulty } from '../types';
-import { RefreshCw, SkipBack, Home, Download, Upload } from 'https://esm.sh/lucide-react@0.474.0?deps=react@19.0.0';
+import { RefreshCw, SkipBack, Home, Download, Upload } from 'lucide-react';
 
 interface ChessboardProps {
     mode: GameMode;

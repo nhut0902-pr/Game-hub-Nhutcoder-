@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'https://esm.sh/react@19.0.0';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameMode, BotDifficulty, CaroState } from '../types';
 import { initCaroGame, makeCaroMove, undoCaroMove, loadCaroGame, BOARD_SIZE } from '../services/caroService';
 import { getBestCaroMove } from '../services/caroBotService';
-import { RefreshCw, SkipBack, Home, Download, Upload, ZoomIn, ZoomOut } from 'https://esm.sh/lucide-react@0.474.0?deps=react@19.0.0';
+import { RefreshCw, SkipBack, Home, Download, Upload, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface CaroBoardProps {
     mode: GameMode;

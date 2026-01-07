@@ -1,11 +1,11 @@
-import React, { useState } from 'https://esm.sh/react@19.0.0';
+import React, { useState } from 'react';
 import Chessboard from './components/Chessboard';
 import CaroBoard from './components/CaroBoard';
 import TetEffect from './components/TetEffect';
 import { GameMode, BotDifficulty, GameType } from './types';
 import { 
   Bot, Users, Crown, ArrowLeft, Swords, Brain, Zap, Grid3X3, Castle, Flower2 
-} from 'https://esm.sh/lucide-react@0.474.0?deps=react@19.0.0';
+} from 'lucide-react';
 
 export default function App() {
   const [activeGame, setActiveGame] = useState<GameType | null>(null);
