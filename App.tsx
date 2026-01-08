@@ -245,9 +245,11 @@ export default function App() {
         )}
         
         <footer className="fixed bottom-2 w-full text-center pointer-events-none z-30">
-            <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full backdrop-blur-md bg-black/40 border border-white/10 text-[10px] md:text-xs text-gray-300 shadow-lg pointer-events-auto transition-all hover:bg-black/60 hover:scale-105">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full backdrop-blur-md bg-black/40 border border-white/10 text-[10px] md:text-xs text-gray-300 shadow-lg pointer-events-auto transition-all hover:bg-black/60 hover:scale-105">
                 <span>Powered By</span>
                 <a href="https://www.tiktok.com/@nhutcoder0902" target="_blank" rel="noopener noreferrer" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500 hover:text-white transition-colors underline decoration-dotted decoration-gray-500">Nhutcoder</a>
+                <span className="text-gray-500">|</span>
+                <span className="text-purple-400 font-bold">Test by Vy</span>
                 <span className="text-gray-500">|</span>
                 <span className="text-gray-400">VinaGames 2026</span>
             </div>

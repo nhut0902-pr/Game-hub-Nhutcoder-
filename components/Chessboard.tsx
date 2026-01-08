@@ -3,7 +3,8 @@ import Square from './Square';
 import { getGame, makeMove, getPossibleMoves, isGameOver, getTurn, inCheck, getBoard, resetGame, getPgn, loadPgn } from '../services/chessService';
 import { getBestMove } from '../services/botService';
 import { PlayerColor, GameMode, BotDifficulty, GameSubMode } from '../types';
-import { RefreshCw, SkipBack, Home, Clock } from 'lucide-react';
+import { RefreshCw, SkipBack, Home, Clock, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 interface ChessboardProps {
     mode: GameMode;
@@ -36,6 +37,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
     const [lastMove, setLastMove] = useState<{from: string, to: string} | null>(null);
     const [isThinking, setIsThinking] = useState(false);
     const [earnedCoins, setEarnedCoins] = useState(0);
+    const boardRef = useRef<HTMLDivElement>(null);
     
     // Timer State
     const [whiteTime, setWhiteTime] = useState(INITIAL_TIME);
@@ -143,6 +145,21 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
+    const handleDownloadImage = async () => {
+        if (boardRef.current) {
+            try {
+                const canvas = await html2canvas(boardRef.current, { backgroundColor: null });
+                const data = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = data;
+                link.download = `vinagames-chess-${Date.now()}.png`;
+                link.click();
+            } catch (error) {
+                console.error("Failed to capture image", error);
+            }
+        }
+    };
+
     let statusText = gameOver ? (timeOver ? `Hết giờ! ${timeOver === 'w' ? 'Đen' : 'Trắng'} thắng!` : (game.isCheckmate() ? `Chiếu bí! ${turn === 'w' ? 'Đen' : 'Trắng'} thắng!` : 'Hòa!')) : (check ? 'Chiếu tướng!' : (turn === 'w' ? 'Lượt Trắng' : 'Lượt Đen'));
 
     return (
@@ -168,7 +185,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                 </div>
             )}
 
-            <div className={`relative w-full aspect-square shadow-2xl rounded-sm overflow-hidden border-4 border-[#333] transition-all duration-500`} style={{ boxShadow: theme === 'theme_neon' ? '0 0 20px #00ff41' : '' }}>
+            <div ref={boardRef} className={`relative w-full aspect-square shadow-2xl rounded-sm overflow-hidden border-4 border-[#333] transition-all duration-500`} style={{ boxShadow: theme === 'theme_neon' ? '0 0 20px #00ff41' : '' }}>
                 <div className="w-full h-full grid grid-cols-8 grid-rows-8">
                     {['8','7','6','5','4','3','2','1'].map((rank, r) => ['a','b','c','d','e','f','g','h'].map((file, c) => {
                         const square = `${file}${rank}`;
@@ -184,8 +201,13 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                         <h3 className="text-3xl font-black text-white mb-2 uppercase">KẾT THÚC</h3>
                         <p className="text-xl text-amber-400 font-bold mb-6">{statusText}</p>
                         {earnedCoins > 0 && <div className="mb-6 text-2xl font-black text-yellow-500 animate-bounce">+{earnedCoins} 🪙</div>}
-                        <button onClick={() => {resetGame(); setEarnedCoins(0); setWhiteTime(INITIAL_TIME); setBlackTime(INITIAL_TIME); setTimeOver(null); forceUpdate();}} 
-                                className="px-8 py-3 bg-amber-600 text-white rounded-full font-bold hover:bg-amber-500 transition shadow-xl">CHƠI LẠI</button>
+                        <div className="flex gap-4">
+                            <button onClick={handleDownloadImage} className="px-6 py-3 bg-gray-700 text-white rounded-full font-bold hover:bg-gray-600 transition shadow-xl flex items-center gap-2">
+                                <Download size={18} /> TẢI ẢNH
+                            </button>
+                            <button onClick={() => {resetGame(); setEarnedCoins(0); setWhiteTime(INITIAL_TIME); setBlackTime(INITIAL_TIME); setTimeOver(null); forceUpdate();}} 
+                                    className="px-8 py-3 bg-amber-600 text-white rounded-full font-bold hover:bg-amber-500 transition shadow-xl">CHƠI LẠI</button>
+                        </div>
                     </div>
                 )}
             </div>

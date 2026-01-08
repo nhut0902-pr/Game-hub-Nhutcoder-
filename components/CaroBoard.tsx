@@ -3,6 +3,7 @@ import { GameMode, BotDifficulty, CaroState, GameSubMode } from '../types';
 import { initCaroGame, makeCaroMove, undoCaroMove, loadCaroGame, BOARD_SIZE } from '../services/caroService';
 import { getBestCaroMove } from '../services/caroBotService';
 import { RefreshCw, SkipBack, Home, Download, Upload, ZoomIn, ZoomOut, Clock } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 interface CaroBoardProps {
     mode: GameMode;
@@ -21,6 +22,7 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
     const [earnedCoins, setEarnedCoins] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const boardRef = useRef<HTMLDivElement>(null);
+    const boardCaptureRef = useRef<HTMLDivElement>(null);
 
     // Timer State
     const [xTime, setXTime] = useState(INITIAL_TIME);
@@ -126,6 +128,29 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
         setTimeOver(null);
     };
 
+    const handleDownloadImage = async () => {
+        if (boardCaptureRef.current) {
+            try {
+                // Tạm thời reset scale để chụp ảnh đúng kích thước
+                const currentTransform = boardCaptureRef.current.style.transform;
+                boardCaptureRef.current.style.transform = 'scale(1)';
+                
+                const canvas = await html2canvas(boardCaptureRef.current, { backgroundColor: null });
+                
+                // Khôi phục scale
+                boardCaptureRef.current.style.transform = currentTransform;
+
+                const data = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = data;
+                link.download = `vinagames-caro-${Date.now()}.png`;
+                link.click();
+            } catch (error) {
+                console.error("Failed to capture image", error);
+            }
+        }
+    };
+
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
@@ -170,7 +195,7 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
 
             <div className="w-full flex-1 relative overflow-hidden bg-[#2a2a2a] rounded-xl shadow-inner flex flex-col">
                 <div ref={boardRef} className="overflow-auto flex-1 p-8 flex justify-center items-center">
-                    <div className="bg-[#eecfa1] p-4 shadow-2xl rounded border-4 border-[#8b4513] relative transition-transform duration-200 ease-out origin-center" style={{ transform: `scale(${zoom})` }}>
+                    <div ref={boardCaptureRef} className="bg-[#eecfa1] p-4 shadow-2xl rounded border-4 border-[#8b4513] relative transition-transform duration-200 ease-out origin-center" style={{ transform: `scale(${zoom})` }}>
                         <div className="grid gap-[1px] bg-[#8b4513] border-2 border-[#8b4513]" style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 40px)`, gridTemplateRows: `repeat(${BOARD_SIZE}, 40px)` }}>
                             {state.board.map((row, r) => row.map((cell, c) => {
                                 const isLastMove = state.history.length > 0 && state.history[state.history.length - 1].r === r && state.history[state.history.length - 1].c === c;
@@ -197,6 +222,9 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
                                 </div>
                             )}
                             <div className="flex gap-4 justify-center">
+                                <button onClick={handleDownloadImage} className="px-5 py-2.5 rounded-lg bg-gray-700 text-white font-bold hover:bg-gray-600 transition flex items-center gap-2">
+                                    <Download size={18} /> Ảnh
+                                </button>
                                 <button onClick={handleReset} className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Chơi Lại</button>
                             </div>
                         </div>
