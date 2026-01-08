@@ -1,82 +1,187 @@
 import { Chess } from 'chess.js';
 import { BotDifficulty } from '../types';
 
-// Weight of pieces
+// Piece Values
 const PIECE_VALUES: Record<string, number> = {
-    p: 10,
-    n: 30,
-    b: 30,
-    r: 50,
-    q: 90,
-    k: 900,
+    p: 100,
+    n: 320,
+    b: 330,
+    r: 500,
+    q: 900,
+    k: 20000,
 };
 
-const PAWN_TABLE = [
+const PAWN_PST = [
     [0,  0,  0,  0,  0,  0,  0,  0],
-    [5, 10, 10, -20, -20, 10, 10,  5],
-    [5, -5, -10,  0,  0, -10, -5,  5],
-    [0,  0,  0, 20, 20,  0,  0,  0],
-    [5,  5, 10, 25, 25, 10,  5,  5],
-    [10, 10, 20, 30, 30, 20, 10, 10],
     [50, 50, 50, 50, 50, 50, 50, 50],
+    [10, 10, 20, 30, 30, 20, 10, 10],
+    [5,  5, 10, 25, 25, 10,  5,  5],
+    [0,  0,  0, 20, 20,  0,  0,  0],
+    [5, -5,-10,  0,  0,-10, -5,  5],
+    [5, 10, 10,-20,-20, 10, 10,  5],
     [0,  0,  0,  0,  0,  0,  0,  0]
 ];
 
-const KNIGHT_TABLE = [
+const KNIGHT_PST = [
     [-50,-40,-30,-30,-30,-30,-40,-50],
-    [-40,-20,  0,  5,  5,  0,-20,-40],
-    [-30,  5, 10, 15, 15, 10,  5,-30],
-    [-30,  0, 15, 20, 20, 15,  0,-30],
-    [-30,  5, 15, 20, 20, 15,  5,-30],
-    [-30,  0, 10, 15, 15, 10,  0,-30],
     [-40,-20,  0,  0,  0,  0,-20,-40],
+    [-30,  0, 10, 15, 15, 10,  0,-30],
+    [-30,  5, 15, 20, 20, 15,  5,-30],
+    [-30,  0, 15, 20, 20, 15,  0,-30],
+    [-30,  5, 10, 15, 15, 10,  5,-30],
+    [-40,-20,  0,  5,  5,  0,-20,-40],
     [-50,-40,-30,-30,-30,-30,-40,-50]
 ];
 
-const getPieceValue = (piece: any, rowIndex: number, colIndex: number): number => {
+const BISHOP_PST = [
+    [-20,-10,-10,-10,-10,-10,-10,-20],
+    [-10,  0,  0,  0,  0,  0,  0,-10],
+    [-10,  0,  5, 10, 10,  5,  0,-10],
+    [-10,  5,  5, 10, 10,  5,  5,-10],
+    [-10,  0, 10, 10, 10, 10,  0,-10],
+    [-10, 10, 10, 10, 10, 10, 10,-10],
+    [-10,  5,  0,  0,  0,  0,  5,-10],
+    [-20,-10,-10,-10,-10,-10,-10,-20]
+];
+
+const ROOK_PST = [
+    [0,  0,  0,  5,  5,  0,  0,  0],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [5, 10, 10, 10, 10, 10, 10,  5],
+    [0,  0,  0,  0,  0,  0,  0,  0]
+];
+
+const QUEEN_PST = [
+    [-20,-10,-10, -5, -5,-10,-10,-20],
+    [-10,  0,  0,  0,  0,  0,  0,-10],
+    [-10,  0,  5,  5,  5,  5,  0,-10],
+    [-5,  0,  5,  5,  5,  5,  0, -5],
+    [0,  0,  5,  5,  5,  5,  0, -5],
+    [-10,  5,  5,  5,  5,  5,  0,-10],
+    [-10,  0,  5,  0,  0,  0,  0,-10],
+    [-20,-10,-10, -5, -5,-10,-10,-20]
+];
+
+const KING_PST = [
+    [-30,-40,-40,-50,-50,-40,-40,-30],
+    [-30,-40,-40,-50,-50,-40,-40,-30],
+    [-30,-40,-40,-50,-50,-40,-40,-30],
+    [-30,-40,-40,-50,-50,-40,-40,-30],
+    [-20,-30,-30,-40,-40,-30,-30,-20],
+    [-10,-20,-20,-20,-20,-20,-20,-10],
+    [20, 20,  0,  0,  0,  0, 20, 20],
+    [20, 30, 10,  0,  0, 10, 30, 20]
+];
+
+const getPiecePstValue = (piece: any, x: number, y: number): number => {
     if (!piece) return 0;
-    
-    let val = PIECE_VALUES[piece.type] || 0;
-    const isWhite = piece.color === 'w';
-    const r = isWhite ? 7 - rowIndex : rowIndex;
-    const c = colIndex;
-
-    if (piece.type === 'p') {
-        val += (PAWN_TABLE[r]?.[c] || 0) / 10;
-    } else if (piece.type === 'n') {
-        val += (KNIGHT_TABLE[r]?.[c] || 0) / 10;
+    let r = piece.color === 'w' ? y : 7 - y;
+    let c = x;
+    switch(piece.type) {
+        case 'p': return PAWN_PST[r][c];
+        case 'n': return KNIGHT_PST[r][c];
+        case 'b': return BISHOP_PST[r][c];
+        case 'r': return ROOK_PST[r][c];
+        case 'q': return QUEEN_PST[r][c];
+        case 'k': return KING_PST[r][c];
+        default: return 0;
     }
-
-    return isWhite ? val : -val;
 };
 
 const evaluateBoard = (game: Chess): number => {
-    let totalEvaluation = 0;
+    let totalEval = 0;
     const board = game.board();
 
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            totalEvaluation += getPieceValue(board[r][c], r, c);
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            const piece = board[i][j];
+            if (piece) {
+                const material = PIECE_VALUES[piece.type];
+                const positional = getPiecePstValue(piece, j, i);
+                const val = material + positional;
+                totalEval += piece.color === 'w' ? val : -val;
+            }
         }
     }
-    return totalEvaluation;
+    return totalEval;
 };
 
-const minimax = (game: Chess, depth: number, alpha: number, beta: number, isMaximizingPlayer: boolean): number => {
-    if (depth === 0 || game.isGameOver()) {
-        return evaluateBoard(game);
+const quiescenceSearch = (game: Chess, alpha: number, beta: number): number => {
+    const standPat = evaluateBoard(game);
+    if (game.turn() === 'w') {
+        if (standPat >= beta) return beta;
+        if (alpha < standPat) alpha = standPat;
+    } else {
+        if (standPat <= alpha) return alpha;
+        if (beta > standPat) beta = standPat;
     }
 
-    const moves = game.moves();
+    const captureMoves = game.moves({ verbose: true }).filter(m => m.captured);
+    captureMoves.sort((a, b) => PIECE_VALUES[b.captured || 'p'] - PIECE_VALUES[a.captured || 'p']);
 
-    if (isMaximizingPlayer) {
+    for (const move of captureMoves) {
+        game.move(move);
+        const score = quiescenceSearch(game, alpha, beta);
+        game.undo();
+
+        if (game.turn() === 'w') {
+            if (score >= beta) return beta;
+            if (score > alpha) alpha = score;
+        } else {
+            if (score <= alpha) return alpha;
+            if (score < beta) beta = score;
+        }
+    }
+    return game.turn() === 'w' ? alpha : beta;
+};
+
+const orderMoves = (game: Chess, moves: string[]): string[] => {
+    return moves.sort((a, b) => {
+        const moveA = game.move(a);
+        game.undo();
+        const moveB = game.move(b);
+        game.undo();
+        
+        let scoreA = 0;
+        let scoreB = 0;
+
+        if (moveA && moveA.captured) scoreA += PIECE_VALUES[moveA.captured] * 10;
+        if (moveB && moveB.captured) scoreB += PIECE_VALUES[moveB.captured] * 10;
+        
+        if (moveA && moveA.promotion) scoreA += 800;
+        if (moveB && moveB.promotion) scoreB += 800;
+
+        return scoreB - scoreA;
+    });
+};
+
+const minimax = (game: Chess, depth: number, alpha: number, beta: number, isMaximizing: boolean): number => {
+    if (depth === 0) {
+        return quiescenceSearch(game, alpha, beta);
+    }
+
+    if (game.isGameOver()) {
+        if (game.isCheckmate()) {
+            return isMaximizing ? -30000 : 30000;
+        }
+        return 0;
+    }
+
+    const rawMoves = game.moves();
+    const moves = orderMoves(game, rawMoves);
+
+    if (isMaximizing) {
         let maxEval = -Infinity;
         for (const move of moves) {
             game.move(move);
-            const evalScore = minimax(game, depth - 1, alpha, beta, false);
+            const ev = minimax(game, depth - 1, alpha, beta, false);
             game.undo();
-            maxEval = Math.max(maxEval, evalScore);
-            alpha = Math.max(alpha, evalScore);
+            maxEval = Math.max(maxEval, ev);
+            alpha = Math.max(alpha, ev);
             if (beta <= alpha) break;
         }
         return maxEval;
@@ -84,10 +189,10 @@ const minimax = (game: Chess, depth: number, alpha: number, beta: number, isMaxi
         let minEval = Infinity;
         for (const move of moves) {
             game.move(move);
-            const evalScore = minimax(game, depth - 1, alpha, beta, true);
+            const ev = minimax(game, depth - 1, alpha, beta, true);
             game.undo();
-            minEval = Math.min(minEval, evalScore);
-            beta = Math.min(beta, evalScore);
+            minEval = Math.min(minEval, ev);
+            beta = Math.min(beta, ev);
             if (beta <= alpha) break;
         }
         return minEval;
@@ -96,7 +201,6 @@ const minimax = (game: Chess, depth: number, alpha: number, beta: number, isMaxi
 
 export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medium'): Promise<string | null> => {
     const game = new Chess(fen);
-    
     const possibleMoves = game.moves();
     if (possibleMoves.length === 0) return null;
 
@@ -105,24 +209,27 @@ export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medi
              setTimeout(() => {
                 const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
                 resolve(randomMove);
-             }, 400);
+             }, 300);
         });
     }
 
-    const depth = difficulty === 'hard' ? 3 : 2; 
+    // Depth 3 for Medium, Depth 5 + Quiescence for Hard (Siêu thông minh)
+    const depth = difficulty === 'hard' ? 5 : 3; 
 
     let bestMove = null;
     let bestValue = game.turn() === 'w' ? -Infinity : Infinity;
-    const isMaximizing = game.turn() === 'w';
+    const isWhiteTurn = game.turn() === 'w';
+
+    const orderedMoves = orderMoves(game, possibleMoves);
 
     return new Promise((resolve) => {
         setTimeout(() => {
-            for (const move of possibleMoves) {
+            for (const move of orderedMoves) {
                 game.move(move);
-                const boardValue = minimax(game, depth - 1, -Infinity, Infinity, !isMaximizing);
+                const boardValue = minimax(game, depth - 1, -Infinity, Infinity, !isWhiteTurn);
                 game.undo();
 
-                if (isMaximizing) {
+                if (isWhiteTurn) {
                     if (boardValue > bestValue) {
                         bestValue = boardValue;
                         bestMove = move;
@@ -134,7 +241,7 @@ export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medi
                     }
                 }
             }
-            resolve(bestMove || possibleMoves[Math.floor(Math.random() * possibleMoves.length)]);
-        }, 50); 
+            resolve(bestMove || orderedMoves[0]);
+        }, 10);
     });
 };

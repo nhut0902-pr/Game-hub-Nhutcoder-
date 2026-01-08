@@ -17,6 +17,7 @@ interface ChessboardProps {
 
 const THEME_COLORS: Record<string, { light: string, dark: string }> = {
     'theme_wood': { light: '#e8cfa6', dark: '#8f5e36' },
+    'theme_green': { light: '#eeeed2', dark: '#769656' }, // Màu chuẩn Chess.com giống ảnh
     'theme_neon': { light: '#222222', dark: '#00ff41' },
     'theme_glass': { light: 'rgba(255,255,255,0.8)', dark: 'rgba(255,255,255,0.3)' },
     'theme_space': { light: '#4a4e69', dark: '#22223b' },
@@ -65,7 +66,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
         }
     }, [turn, gameOver, isThinking, subMode]);
 
-    const currentThemeColors = THEME_COLORS[theme] || THEME_COLORS['theme_wood'];
+    const currentThemeColors = THEME_COLORS[theme] || THEME_COLORS['theme_green'];
 
     useEffect(() => {
         resetGame();

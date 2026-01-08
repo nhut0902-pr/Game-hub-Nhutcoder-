@@ -26,11 +26,11 @@ export default function App() {
   });
   const [ownedItems, setOwnedItems] = useState<string[]>(() => {
       const saved = localStorage.getItem('vina_owned_items');
-      return saved ? JSON.parse(saved) : ['theme_wood', 'piece_standard'];
+      return saved ? JSON.parse(saved) : ['theme_green', 'theme_wood', 'piece_standard'];
   });
   const [activeItems, setActiveItems] = useState<Record<string, string>>(() => {
       const saved = localStorage.getItem('vina_active_items');
-      return saved ? JSON.parse(saved) : { theme: 'theme_wood', piece_style: 'piece_standard' };
+      return saved ? JSON.parse(saved) : { theme: 'theme_green', piece_style: 'piece_standard' };
   });
 
   useEffect(() => { localStorage.setItem('vina_coins', coins.toString()); }, [coins]);

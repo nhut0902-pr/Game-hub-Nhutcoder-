@@ -13,6 +13,7 @@ export interface ShopItem {
 
 export const SHOP_ITEMS: ShopItem[] = [
     // Themes
+    { id: 'theme_green', type: 'theme', name: 'Bàn Classic Green', price: 0, icon: '🟩', description: 'Giao diện bàn cờ tiêu chuẩn' },
     { id: 'theme_wood', type: 'theme', name: 'Bàn Gỗ Sồi', price: 0, icon: '🟫', description: 'Giao diện cổ điển mộc mạc' },
     { id: 'theme_neon', type: 'theme', name: 'Bàn Neon', price: 500, icon: '✨', description: 'Phong cách Cyberpunk cực chất' },
     { id: 'theme_glass', type: 'theme', name: 'Bàn Thủy Tinh', price: 1000, icon: '🧊', description: 'Trong suốt tinh tế sang trọng' },
@@ -129,7 +130,7 @@ const Shop: React.FC<ShopProps> = ({ isOpen, onClose, coins, ownedItems, activeI
                                                 onClick={() => onBuy(item)}
                                                 disabled={!canBuy}
                                                 className={`w-full py-2 flex items-center justify-center gap-1.5 rounded-lg text-sm font-bold transition-all ${
-                                                    canBuy ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                                    canBuy ? `Mua ${item.price} 🪙` : 'Không đủ xu'
                                                 }`}
                                             >
                                                 {canBuy ? `Mua ${item.price} 🪙` : 'Không đủ xu'}
