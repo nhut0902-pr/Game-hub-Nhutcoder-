@@ -13,30 +13,27 @@ const SCORES = {
 };
 
 export const getBestCaroMove = async (state: CaroState, difficulty: string): Promise<{r: number, c: number} | null> => {
-    return new Promise((resolve) => {
-        // Run in next tick to avoid blocking UI
-        setTimeout(() => {
-            try {
-                const move = calculateMove(state, difficulty);
-                resolve(move);
-            } catch (e) {
-                console.error("Bot Error", e);
-                // Fallback: find first empty spot
-                for(let r=0; r<BOARD_SIZE; r++) {
-                    for(let c=0; c<BOARD_SIZE; c++) {
-                        if(state.board[r][c] === null) {
-                            resolve({r, c});
-                            return;
-                        }
+    return new Promise(async (resolve) => {
+        try {
+            const move = await calculateMoveChunked(state, difficulty);
+            resolve(move);
+        } catch (e) {
+            console.error("Bot Error", e);
+            // Fallback: find first empty spot
+            for(let r=0; r<BOARD_SIZE; r++) {
+                for(let c=0; c<BOARD_SIZE; c++) {
+                    if(state.board[r][c] === null) {
+                        resolve({r, c});
+                        return;
                     }
                 }
-                resolve(null);
             }
-        }, 500); 
+            resolve(null);
+        }
     });
 };
 
-const calculateMove = (state: CaroState, difficulty: string) => {
+const calculateMoveChunked = async (state: CaroState, difficulty: string) => {
     const { board, turn } = state;
     
     // Optimization: Only consider moves near existing pieces
@@ -64,13 +61,11 @@ const calculateMove = (state: CaroState, difficulty: string) => {
         }
     }
 
-    // Convert candidates to array
     let movesToCheck = Array.from(candidates).map(s => {
         const [r, c] = s.split(',').map(Number);
         return { r, c };
     });
 
-    // Fallback if no neighbors found (rare, maybe bug), search all empty cells
     if (movesToCheck.length === 0) {
          for(let r=0; r<BOARD_SIZE; r++) {
             for(let c=0; c<BOARD_SIZE; c++) {
@@ -79,45 +74,44 @@ const calculateMove = (state: CaroState, difficulty: string) => {
         }
     }
 
-    // Easy: Random valid candidate
     if (difficulty === 'easy') {
         const randomIdx = Math.floor(Math.random() * movesToCheck.length);
         return movesToCheck[randomIdx];
     }
 
-    // Medium/Hard: Evaluate positions
     let bestScore = -Infinity;
     let bestMoves: {r: number, c: number}[] = [];
 
     const botPlayer = turn;
     const opponent = turn === 'X' ? 'O' : 'X';
 
-    for (const move of movesToCheck) {
-        // Attack score (Bot's potential)
+    // CHUNKING: Process candidates in small batches to keep UI responsive
+    const batchSize = 10;
+    for (let i = 0; i < movesToCheck.length; i++) {
+        // Yield every batch
+        if (i % batchSize === 0) {
+            await new Promise(r => setTimeout(r, 0));
+        }
+
+        const move = movesToCheck[i];
         const attackScore = evaluatePoint(board, move.r, move.c, botPlayer);
-        
-        // Defense score (Opponent's potential) - Block them!
         const defenseScore = evaluatePoint(board, move.r, move.c, opponent);
 
-        // Difficulty adjustment for weights
         let currentScore = 0;
         if (difficulty === 'medium') {
-            // Medium prioritizes blocking immediate threats but less aggressive on setups
             currentScore = attackScore + defenseScore * 0.8;
         } else {
-            // Hard: Prioritize Win, then Block Win
-            if (attackScore >= SCORES.WIN) currentScore = Infinity; // Win now
-            else if (defenseScore >= SCORES.WIN) currentScore = SCORES.WIN - 1; // Block win
+            if (attackScore >= SCORES.WIN) currentScore = Infinity; 
+            else if (defenseScore >= SCORES.WIN) currentScore = SCORES.WIN - 1; 
             else currentScore = attackScore + defenseScore;
         }
         
-        // Add a tiny bit of randomness to positionally equal moves to vary play
         currentScore += Math.random() * 10;
 
         if (currentScore > bestScore) {
             bestScore = currentScore;
             bestMoves = [move];
-        } else if (Math.abs(currentScore - bestScore) < 50) { // fuzzy equal
+        } else if (Math.abs(currentScore - bestScore) < 50) {
             bestMoves.push(move);
         }
     }
@@ -125,7 +119,6 @@ const calculateMove = (state: CaroState, difficulty: string) => {
     return bestMoves.length > 0 ? bestMoves[Math.floor(Math.random() * bestMoves.length)] : movesToCheck[0];
 };
 
-// Evaluate a specific empty spot for a specific player
 const evaluatePoint = (board: (CaroPlayer | null)[][], r: number, c: number, player: CaroPlayer) => {
     let totalScore = 0;
     const directions = [
@@ -139,7 +132,6 @@ const evaluatePoint = (board: (CaroPlayer | null)[][], r: number, c: number, pla
         let consecutive = 0;
         let openEnds = 0;
         
-        // Look forward
         let i = 1;
         while (true) {
             const nr = r + dr * i;
@@ -151,12 +143,11 @@ const evaluatePoint = (board: (CaroPlayer | null)[][], r: number, c: number, pla
                 openEnds++;
                 break;
             } else {
-                break; // Blocked by opponent
+                break; 
             }
             i++;
         }
 
-        // Look backward
         i = 1;
         while (true) {
             const nr = r - dr * i;
@@ -173,7 +164,6 @@ const evaluatePoint = (board: (CaroPlayer | null)[][], r: number, c: number, pla
             i++;
         }
 
-        // Assign scores based on patterns
         if (consecutive >= 4) totalScore += SCORES.WIN;
         else if (consecutive === 3) {
             if (openEnds === 2) totalScore += SCORES.OPEN_FOUR;

@@ -1,4 +1,5 @@
-import { Chess } from 'chess.js';
+
+import { Chess, Square } from 'chess.js';
 
 let chessInstance: Chess;
 
@@ -28,7 +29,8 @@ export const makeMove = (from: string, to: string, promotion: string = 'q') => {
 
 export const getPossibleMoves = (square: string) => {
     if (!chessInstance) initGame();
-    return chessInstance.moves({ square, verbose: true }).map((m: any) => m.to);
+    // Fix: cast square to Square from chess.js to resolve overload match error
+    return chessInstance.moves({ square: square as Square, verbose: true }).map((m: any) => m.to);
 };
 
 export const isGameOver = () => {

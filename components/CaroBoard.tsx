@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GameMode, BotDifficulty, CaroState, GameSubMode } from '../types';
-import { initCaroGame, makeCaroMove, undoCaroMove, loadCaroGame, BOARD_SIZE } from '../services/caroService';
+import { initCaroGame, makeCaroMove, undoCaroMove, BOARD_SIZE } from '../services/caroService';
 import { getBestCaroMove } from '../services/caroBotService';
-import { RefreshCw, SkipBack, Home, Download, Upload, ZoomIn, ZoomOut, Clock } from 'lucide-react';
+import { RefreshCw, SkipBack, Home, Download, ZoomIn, ZoomOut, Clock } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface CaroBoardProps {
@@ -16,11 +16,10 @@ interface CaroBoardProps {
 const INITIAL_TIME = 300; // 5 mins
 
 const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEarnCoins, subMode }) => {
-    const [state, setState] = useState<CaroState>(initCaroGame());
+    const [state, setState] = useState<CaroState>(() => initCaroGame());
     const [isThinking, setIsThinking] = useState(false);
     const [zoom, setZoom] = useState(1);
     const [earnedCoins, setEarnedCoins] = useState(0);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const boardRef = useRef<HTMLDivElement>(null);
     const boardCaptureRef = useRef<HTMLDivElement>(null);
 
@@ -80,24 +79,21 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
     }, [state.winner, timeOver, earnedCoins, mode, onEarnCoins, subMode]);
 
     useEffect(() => {
-        if (boardRef.current) {
-            const scrollWidth = boardRef.current.scrollWidth;
-            const clientWidth = boardRef.current.clientWidth;
-            boardRef.current.scrollLeft = (scrollWidth - clientWidth) / 2;
-        }
-    }, []);
-
-    useEffect(() => {
         let isMounted = true;
         const runBot = async () => {
             if (mode === 'bot' && state.turn === 'O' && !state.winner && !timeOver) {
                 setIsThinking(true);
-                await new Promise(r => setTimeout(r, 600));
                 try {
                     const botDiff = subMode === 'challenge' ? 'hard' : (difficulty || 'medium');
                     const move = await getBestCaroMove(state, botDiff);
-                    if (isMounted && move) { setState(prev => makeCaroMove(prev, move.r, move.c)); }
-                } catch (e) { console.error("Bot failed", e); } finally { if (isMounted) setIsThinking(false); }
+                    if (isMounted && move) { 
+                        setState(prev => makeCaroMove(prev, move.r, move.c)); 
+                    }
+                } catch (e) { 
+                    console.error("Bot failed", e); 
+                } finally { 
+                    if (isMounted) setIsThinking(false); 
+                }
             }
         };
         runBot();
@@ -131,15 +127,10 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
     const handleDownloadImage = async () => {
         if (boardCaptureRef.current) {
             try {
-                // Tạm thời reset scale để chụp ảnh đúng kích thước
                 const currentTransform = boardCaptureRef.current.style.transform;
                 boardCaptureRef.current.style.transform = 'scale(1)';
-                
-                const canvas = await html2canvas(boardCaptureRef.current, { backgroundColor: null });
-                
-                // Khôi phục scale
+                const canvas = await html2canvas(boardCaptureRef.current, { backgroundColor: '#eecfa1' });
                 boardCaptureRef.current.style.transform = currentTransform;
-
                 const data = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.href = data;
@@ -193,7 +184,7 @@ const CaroBoard: React.FC<CaroBoardProps> = ({ mode, difficulty, onGoBack, onEar
                 </div>
             )}
 
-            <div className="w-full flex-1 relative overflow-hidden bg-[#2a2a2a] rounded-xl shadow-inner flex flex-col">
+            <div className="w-full flex-1 relative overflow-hidden bg-[#2a2a2a] rounded-xl shadow-inner flex flex-col min-h-[400px]">
                 <div ref={boardRef} className="overflow-auto flex-1 p-8 flex justify-center items-center">
                     <div ref={boardCaptureRef} className="bg-[#eecfa1] p-4 shadow-2xl rounded border-4 border-[#8b4513] relative transition-transform duration-200 ease-out origin-center" style={{ transform: `scale(${zoom})` }}>
                         <div className="grid gap-[1px] bg-[#8b4513] border-2 border-[#8b4513]" style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 40px)`, gridTemplateRows: `repeat(${BOARD_SIZE}, 40px)` }}>

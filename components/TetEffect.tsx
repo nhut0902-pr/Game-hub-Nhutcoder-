@@ -1,22 +1,28 @@
 import React, { useMemo } from 'react';
 
-const FLOWER_COUNT = 35;
+const FLOWER_COUNT = 25; // Giảm nhẹ số lượng để tối ưu hiệu năng
 
 const TetEffect: React.FC = () => {
   const flowers = useMemo(() => {
     return Array.from({ length: FLOWER_COUNT }).map((_, i) => ({
       id: i,
       left: Math.random() * 100,
-      animationDuration: 5 + Math.random() * 10,
+      animationDuration: 7 + Math.random() * 8, // Tốc độ rơi chậm lại chút để ít tải CPU
       animationDelay: Math.random() * 5,
-      size: 15 + Math.random() * 20,
-      swayDuration: 2 + Math.random() * 2,
+      size: 14 + Math.random() * 16,
+      swayDuration: 3 + Math.random() * 2,
       type: Math.random() > 0.5 ? 'mai' : 'dao',
     }));
   }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      <style>{`
+        .falling-petal {
+          will-change: transform;
+          transform: translate3d(0, -50px, 0);
+        }
+      `}</style>
       {flowers.map((f) => (
         <div
           key={f.id}

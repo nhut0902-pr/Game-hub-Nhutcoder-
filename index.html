@@ -49,9 +49,9 @@
       body { background-color: #0f0f0f; color: #ffffff; margin: 0; overflow-x: hidden; }
       #root { min-height: 100vh; display: flex; flex-direction: column; }
       @keyframes fall {
-        0% { top: -10%; transform: translateX(0) rotate(0deg); opacity: 0; }
+        0% { transform: translate3d(0, -50px, 0) rotate(0deg); opacity: 0; }
         10% { opacity: 1; }
-        100% { top: 110%; transform: translateX(20px) rotate(360deg); opacity: 0; }
+        100% { transform: translate3d(20px, 110vh, 0) rotate(360deg); opacity: 0; }
       }
       @keyframes sway { 0%, 100% { transform: translateX(0px); } 50% { transform: translateX(25px); } }
       .falling-petal {

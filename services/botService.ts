@@ -110,8 +110,11 @@ const evaluateBoard = (game: Chess): number => {
     return totalEval;
 };
 
-const quiescenceSearch = (game: Chess, alpha: number, beta: number): number => {
+const quiescenceSearch = (game: Chess, alpha: number, beta: number, qDepth: number = 0): number => {
     const standPat = evaluateBoard(game);
+    // Quiescence depth limit to prevent infinite recursions in complex scenarios
+    if (qDepth > 4) return standPat;
+
     if (game.turn() === 'w') {
         if (standPat >= beta) return beta;
         if (alpha < standPat) alpha = standPat;
@@ -125,7 +128,7 @@ const quiescenceSearch = (game: Chess, alpha: number, beta: number): number => {
 
     for (const move of captureMoves) {
         game.move(move);
-        const score = quiescenceSearch(game, alpha, beta);
+        const score = quiescenceSearch(game, alpha, beta, qDepth + 1);
         game.undo();
 
         if (game.turn() === 'w') {
@@ -213,8 +216,8 @@ export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medi
         });
     }
 
-    // Depth 3 for Medium, Depth 5 + Quiescence for Hard (Siêu thông minh)
-    const depth = difficulty === 'hard' ? 5 : 3; 
+    // Depth 3 for Medium, Depth 4 for Hard in JS to avoid lag while staying very strong
+    const depth = difficulty === 'hard' ? 4 : 3; 
 
     let bestMove = null;
     let bestValue = game.turn() === 'w' ? -Infinity : Infinity;
@@ -222,26 +225,28 @@ export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medi
 
     const orderedMoves = orderMoves(game, possibleMoves);
 
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            for (const move of orderedMoves) {
-                game.move(move);
-                const boardValue = minimax(game, depth - 1, -Infinity, Infinity, !isWhiteTurn);
-                game.undo();
+    // CHUNKING: Evaluate each top-level move in its own tick to keep UI responsive
+    return new Promise(async (resolve) => {
+        for (const move of orderedMoves) {
+            // Yield control back to the UI thread before evaluating each candidate
+            await new Promise(r => setTimeout(r, 0));
+            
+            game.move(move);
+            const boardValue = minimax(game, depth - 1, -Infinity, Infinity, !isWhiteTurn);
+            game.undo();
 
-                if (isWhiteTurn) {
-                    if (boardValue > bestValue) {
-                        bestValue = boardValue;
-                        bestMove = move;
-                    }
-                } else {
-                    if (boardValue < bestValue) {
-                        bestValue = boardValue;
-                        bestMove = move;
-                    }
+            if (isWhiteTurn) {
+                if (boardValue > bestValue) {
+                    bestValue = boardValue;
+                    bestMove = move;
+                }
+            } else {
+                if (boardValue < bestValue) {
+                    bestValue = boardValue;
+                    bestMove = move;
                 }
             }
-            resolve(bestMove || orderedMoves[0]);
-        }, 10);
+        }
+        resolve(bestMove || orderedMoves[0]);
     });
 };

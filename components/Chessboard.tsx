@@ -1,4 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
+// Fix: Import Square as ChessSquare to avoid naming conflict with local Square component
+import { Square as ChessSquare } from 'chess.js';
 import Square from './Square';
 import { getGame, makeMove, getPossibleMoves, isGameOver, getTurn, inCheck, getBoard, resetGame, getPgn, loadPgn } from '../services/chessService';
 import { getBestMove } from '../services/botService';
@@ -132,7 +135,8 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                 return;
             }
         }
-        const piece = game.get(square);
+        // Fix: cast square string to ChessSquare for game.get() call
+        const piece = game.get(square as ChessSquare);
         if (piece && piece.color === turn) {
             setSelectedSquare(square);
             setPossibleMoves(getPossibleMoves(square));
@@ -190,7 +194,8 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                     {['8','7','6','5','4','3','2','1'].map((rank, r) => ['a','b','c','d','e','f','g','h'].map((file, c) => {
                         const square = `${file}${rank}`;
                         return (
-                            <Square key={square} square={square} piece={game.get(square)} isLight={(r+c)%2===0} isSelected={selectedSquare===square} 
+                            // Fix: cast square to ChessSquare for game.get() call to satisfy chess.js type requirements
+                            <Square key={square} square={square} piece={game.get(square as ChessSquare)} isLight={(r+c)%2===0} isSelected={selectedSquare===square} 
                                     isPossibleMove={possibleMoves.includes(square)} isLastMove={lastMove?(lastMove.from===square||lastMove.to===square):false}
                                     isCheck={check} onClick={() => handleSquareClick(square)} themeColors={currentThemeColors} pieceStyle={pieceStyle}/>
                         );
