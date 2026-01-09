@@ -7,7 +7,7 @@ const getFallbackRandomMove = (game: Chess): string | null => {
     const moves = game.moves({ verbose: true });
     if (moves.length === 0) return null;
     const move = moves[Math.floor(Math.random() * moves.length)];
-    // Trả về định dạng UCI (ví dụ: e2e4) thay vì SAN (ví dụ: e4)
+    // Trả về định dạng UCI (ví dụ: e2e4)
     return move.from + move.to + (move.promotion || '');
 };
 
@@ -25,6 +25,5 @@ export const getBestMove = async (fen: string, difficulty: BotDifficulty = 'medi
     }
 
     // Fallback: Nếu Stockfish không phản hồi, dùng nước đi ngẫu nhiên
-    // Ở đây ta có thể mở rộng Minimax nếu cần, nhưng để nhanh và không lỗi, dùng random hợp lệ
-    return new Promise(r => setTimeout(() => r(getFallbackRandomMove(game)), 500));
+    return new Promise(r => setTimeout(() => r(getFallbackRandomMove(game)), 600));
 };
