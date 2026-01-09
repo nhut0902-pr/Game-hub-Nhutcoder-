@@ -1,11 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VinaGames - Chess & Caro</title>
+    <title>VinaGames - Chess & Caro AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&family=Oswald:wght@700&display=swap" rel="stylesheet">
     <script type="importmap">
 {
   "imports": {
@@ -20,13 +21,16 @@
   }
 }
 </script>
+    <!-- Stockfish Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: { 
               sans: ['Inter', 'sans-serif'],
-              mono: ['Fira Code', 'monospace']
+              mono: ['Fira Code', 'monospace'],
+              heading: ['Oswald', 'sans-serif']
             },
             colors: {
               board: {
@@ -77,6 +81,18 @@
       .animate-fade-in {
         animation: fadeIn 0.3s ease-out forwards;
       }
+      .animate-spin-slow {
+        animation: spin 8s linear infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #0f0f0f; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: #444; }
     </style>
   </head>
   <body>
