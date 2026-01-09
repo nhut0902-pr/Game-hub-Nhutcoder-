@@ -5,7 +5,7 @@ import Square from './Square';
 import { getGame, makeMove, getPossibleMoves, isGameOver, getTurn, inCheck, resetGame } from '../services/chessService';
 import { getBestMove } from '../services/botService';
 import { PlayerColor, GameMode, BotDifficulty, GameSubMode } from '../types';
-import { RefreshCw, Home, Clock, Download, BrainCircuit, Zap } from 'lucide-react';
+import { RefreshCw, Home, Clock, Download, BrainCircuit, Zap, ShieldAlert } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface ChessboardProps {
@@ -88,9 +88,9 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
             let reward = 0;
             const winnerColor = timeOver ? (timeOver === 'w' ? 'b' : 'w') : (turn === 'w' ? 'b' : 'w');
             if (game.isCheckmate() || timeOver) {
-                if (mode === 'bot') reward = winnerColor === 'w' ? (subMode === 'challenge' ? 500 : 200) : 10;
+                if (mode === 'bot') reward = winnerColor === 'w' ? (subMode === 'challenge' ? 1000 : 300) : 10;
                 else reward = 50;
-            } else if (game.isDraw()) reward = 50;
+            } else if (game.isDraw()) reward = 100;
             if (reward > 0) {
                 setEarnedCoins(reward);
                 onEarnCoins(reward);
@@ -187,7 +187,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
             <div className="w-full flex justify-between items-center mb-4 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg">
                 <button onClick={onGoBack} className="p-2 hover:bg-gray-700 rounded-full text-gray-400"><Home size={20}/></button>
                 <div className="text-center">
-                    <h2 className="font-heading font-bold text-white text-xl uppercase tracking-wider">{subMode === 'time' ? 'Cờ Chớp' : (subMode === 'challenge' ? 'Thử Thách AI' : 'Cổ Điển')}</h2>
+                    <h2 className="font-heading font-bold text-white text-xl uppercase tracking-wider">{subMode === 'time' ? 'Cờ Chớp' : (subMode === 'challenge' ? 'Đại Kiện Tướng' : 'Cổ Điển')}</h2>
                     <p className={`text-xs font-bold transition-colors ${check ? 'text-red-500 animate-pulse' : 'text-gray-400'}`}>{statusText}</p>
                 </div>
                 <button onClick={() => {resetGame(); setWhiteTime(INITIAL_TIME); setBlackTime(INITIAL_TIME); setTimeOver(null); setLastMove(null); forceUpdate();}} className="p-2 bg-amber-600 rounded-full text-white hover:rotate-180 transition-transform duration-500"><RefreshCw size={18}/></button>
@@ -217,13 +217,13 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                 </div>
 
                 {isThinking && (
-                    <div className={`absolute top-4 right-4 bg-black/80 backdrop-blur-md px-4 py-2 rounded-xl border flex items-center gap-2 z-40 shadow-2xl ${currentDifficulty === 'hard' ? 'border-red-500/50' : 'border-amber-500/50'}`}>
-                        {currentDifficulty === 'hard' ? <Zap size={18} className="text-red-500 animate-pulse" /> : <BrainCircuit size={18} className="text-amber-500 animate-spin-slow" />}
+                    <div className={`absolute top-4 right-4 bg-black/80 backdrop-blur-md px-4 py-2 rounded-xl border flex items-center gap-2 z-40 shadow-2xl ${currentDifficulty === 'hard' ? 'border-red-500 animate-pulse' : 'border-amber-500/50'}`}>
+                        {currentDifficulty === 'hard' ? <ShieldAlert size={18} className="text-red-500" /> : <BrainCircuit size={18} className="text-amber-500 animate-spin-slow" />}
                         <div className="flex flex-col">
                             <span className={`text-[10px] font-black tracking-widest uppercase ${currentDifficulty === 'hard' ? 'text-red-500' : 'text-amber-500'}`}>
-                                {currentDifficulty === 'hard' ? 'AI PRO MODE' : 'ENGINE THINKING'}
+                                {currentDifficulty === 'hard' ? 'GRANDMASTER LEVEL' : 'STOCKFISH 10+'}
                             </span>
-                            <span className="text-[8px] text-gray-400 font-mono">STOCKFISH v10+</span>
+                            <span className="text-[8px] text-gray-400 font-mono">D:22 | H:256 | T:4</span>
                         </div>
                     </div>
                 )}
@@ -244,9 +244,12 @@ const Chessboard: React.FC<ChessboardProps> = ({ mode, difficulty, onGoBack, the
                 )}
             </div>
             
-            <div className="mt-4 w-full bg-gray-900/50 p-3 rounded-lg border border-gray-800 flex justify-center items-center gap-4">
-               <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                  <div className="w-2 h-2 rounded-full bg-red-500"></div> Chế độ Khó: Depth 18 (Engine Pro)
+            <div className="mt-4 w-full bg-gray-900/50 p-3 rounded-lg border border-gray-800 flex flex-col justify-center items-center gap-1">
+               <div className="flex items-center gap-2 text-[11px] font-bold text-red-500 uppercase tracking-widest">
+                  <Zap size={12} className="animate-pulse" /> Chế độ Khó: Stockfish Engine v10 (GM Level)
+               </div>
+               <div className="text-[9px] text-gray-500 font-mono">
+                  Depth: 22 | Threads: 4 | Hash: 256MB | Contempt: 100
                </div>
             </div>
         </div>

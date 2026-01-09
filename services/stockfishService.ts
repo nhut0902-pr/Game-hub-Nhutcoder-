@@ -31,10 +31,12 @@ class StockfishService {
             const line = event.data;
             if (line === 'uciok') {
                 this.isReady = true;
-                // Cấu hình tối ưu cho engine
-                this.worker?.postMessage('setoption name Threads value 2'); // Sử dụng 2 luồng để mạnh hơn
-                this.worker?.postMessage('setoption name Hash value 64');   // 64MB bộ nhớ đệm
+                // Cấu hình tối ưu cho engine Grandmaster
+                this.worker?.postMessage('setoption name Threads value 4'); // Sử dụng tối đa luồng phổ biến
+                this.worker?.postMessage('setoption name Hash value 256');  // Tăng bộ nhớ đệm lên 256MB để tính toán sâu
                 this.worker?.postMessage('setoption name Ponder value true');
+                this.worker?.postMessage('setoption name MultiPV value 1');  // Tập trung toàn lực vào 1 nước đi tốt nhất
+                this.worker?.postMessage('setoption name Slow Mover value 100'); // Dành nhiều thời gian hơn cho các nước đi quan trọng
                 this.worker?.postMessage('isready');
             } else if (line === 'readyok') {
                 this.isReady = true;
@@ -63,29 +65,29 @@ class StockfishService {
 
             switch (difficulty) {
                 case 'easy':
-                    depth = 4;
+                    depth = 5;
                     skillLevel = 0;
-                    contempt = -100; // Chơi nhút nhát
+                    contempt = -100;
                     break;
                 case 'medium':
                     depth = 12;
-                    skillLevel = 12;
+                    skillLevel = 15;
                     contempt = 0;
                     break;
                 case 'hard':
-                    // Cấp độ Pro: Tăng depth lên 18, max skill, tăng độ hung hãn
-                    depth = 18; 
-                    skillLevel = 20;
-                    contempt = 50; // Chơi chủ động tấn công
+                    // Cấu hình Grandmaster (GM)
+                    depth = 22; // Độ sâu 22 cực kỳ mạnh cho bản JS
+                    skillLevel = 20; // Max skill level
+                    contempt = 100; // Cực kỳ hung hãn, ép sân đối thủ
                     break;
             }
 
-            // Timeout linh hoạt theo độ khó (Khó thì cho phép tính lâu hơn)
-            const maxWait = difficulty === 'hard' ? 15000 : 8000;
+            // Timeout linh hoạt: Chế độ khó cho phép bot nghĩ lâu hơn (tới 30 giây nếu cần)
+            const maxWait = difficulty === 'hard' ? 30000 : 10000;
 
             this.timeoutId = setTimeout(() => {
                 if (this.resolvePromise) {
-                    console.warn("Stockfish timeout, returning best available...");
+                    console.warn("Stockfish thinking reached limit, forcing move...");
                     this.worker?.postMessage('stop');
                 }
             }, maxWait);
